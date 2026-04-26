@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-// @ts-expect-error - ical.js has no bundled types
 import ICAL from "ical.js";
 import { CalendarEvent } from "./types";
 
