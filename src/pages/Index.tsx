@@ -6,6 +6,7 @@ import { useNews } from "@/mirror/useNews";
 import { Greeting } from "@/mirror/components/Greeting";
 import { Clock } from "@/mirror/components/Clock";
 import { Weather } from "@/mirror/components/Weather";
+import { Location } from "@/mirror/components/Location";
 import { Forecast } from "@/mirror/components/Forecast";
 import { AQI } from "@/mirror/components/AQI";
 import { SunTimes } from "@/mirror/components/SunTimes";
@@ -38,13 +39,16 @@ const Index = () => {
       {/* Top-right column */}
       <section className="absolute top-12 right-12 max-w-sm">
         <Weather data={weather} unit={settings.unit} />
+        <div className="flex justify-end">
+          <Location coords={coords} city={weather?.city ?? coords?.city ?? null} />
+        </div>
         <AQI data={weather} />
         <SunTimes data={weather} />
         <Forecast data={weather} />
       </section>
 
-      {/* Bottom-center ticker */}
-      <section className="absolute bottom-12 left-0 right-0 flex justify-center">
+      {/* Bottom ticker zone */}
+      <section className="absolute bottom-12 left-0 right-0">
         <Ticker headlines={headlines} />
       </section>
 

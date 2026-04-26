@@ -8,7 +8,9 @@ export function useSettings() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return DEFAULT_SETTINGS;
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+      const parsed = JSON.parse(raw);
+      // Migrate existing installs to Celsius by default.
+      return { ...DEFAULT_SETTINGS, ...parsed, unit: "celsius" };
     } catch {
       return DEFAULT_SETTINGS;
     }

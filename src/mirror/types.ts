@@ -12,7 +12,7 @@ export const DEFAULT_SETTINGS: Settings = {
   name: "Aditya",
   icalUrl: "",
   use24h: false,
-  unit: "fahrenheit",
+  unit: "celsius",
 };
 
 export type Coords = { lat: number; lon: number; city?: string };

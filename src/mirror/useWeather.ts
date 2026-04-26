@@ -16,11 +16,24 @@ export type WeatherData = {
 
 async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
   try {
-    const r = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=en&format=json`
-    );
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`, {
+      headers: {
+        "Accept-Language": "en",
+      },
+    });
     const j = await r.json();
-    return j?.results?.[0]?.name ?? null;
+    const city =
+      j?.address?.city ??
+      j?.address?.town ??
+      j?.address?.village ??
+      j?.address?.hamlet ??
+      j?.address?.county ??
+      null;
+    const state = j?.address?.state ?? null;
+
+    if (!city && !state) return null;
+    if (city && state) return `${city}, ${state}`;
+    return city ?? state;
   } catch {
     return null;
   }

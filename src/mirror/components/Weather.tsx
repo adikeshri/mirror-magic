@@ -17,7 +17,6 @@ export function Weather({ data, unit }: { data: WeatherData | null; unit: "fahre
           <span className="text-dim">{u}</span>
         </div>
         <div className="text-normal light text-lg mt-1">{label}</div>
-        {data.city && <div className="label-xs mt-1">{data.city}</div>}
       </div>
     </div>
   );
