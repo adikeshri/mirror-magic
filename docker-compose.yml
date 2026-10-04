@@ -1,0 +1,18 @@
+services:
+  mirror:
+    build: .
+    image: mirror-magic
+    restart: unless-stopped
+    ports:
+      # Loopback only: the mirror's own browser is the only client it needs.
+      # Use "8080:8080" to reach it from other devices on your network.
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./config.json:/config/config.json:ro
+      - mirror-data:/data
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+volumes:
+  mirror-data:

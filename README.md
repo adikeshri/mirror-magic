@@ -92,7 +92,40 @@ and caches each index by its exchange's trading hours. During the session it
 refreshes every 5 minutes. Before the open it holds the last close until the
 bell. If Yahoo refuses, the last known value is shown.
 
-## Running on a Raspberry Pi
+## Running with Docker (recommended on a Raspberry Pi)
+
+Works on a Raspberry Pi 3, 4 or 5 running a **64-bit** OS, and on any other
+machine with Docker. The image is built on the device itself, so it always
+matches the CPU.
+
+```bash
+git clone https://github.com/adikeshri/mirror-magic.git
+cd mirror-magic
+cp config.example.json config.json   # then edit it
+docker compose up -d --build
+```
+
+Open `http://127.0.0.1:8080`. Docker restarts the mirror after a reboot or a
+crash (`restart: unless-stopped`), and the container reports its health to
+`docker ps`.
+
+- `config.json` is mounted read-only, so edit it on the host and reload the
+  page. No rebuild is needed.
+- Market quotes are cached in the `mirror-data` volume and survive restarts.
+- The port is published on `127.0.0.1` only. To reach the mirror from other
+  devices, change the port mapping in `docker-compose.yml` to `"8080:8080"`.
+- The container runs as an unprivileged user with a read-only filesystem and
+  all capabilities dropped.
+
+To update: `git pull && docker compose up -d --build`.
+
+Then open it full-screen at login:
+
+```bash
+chromium-browser --kiosk --noerrdialogs --disable-infobars http://127.0.0.1:8080
+```
+
+## Running on a Raspberry Pi without Docker
 
 1. Install Node 22.18+ and build the app as in Quick start.
 2. Keep the server running with systemd, in `/etc/systemd/system/mirror.service`:
