@@ -1,45 +1,52 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Settings } from "./config";
 
-const FEED = "https://feeds.bbci.co.uk/news/world/rss.xml";
-const FALLBACK_SOURCE = "BBC";
+export type NewsItem = { title: string; source: string; publishedAt: Date | null };
 
-export type NewsItem = {
-  title: string;
-  source: string;
-  publishedAt?: string;
-};
+const REFRESH_MS = 10 * 60 * 1000;
+const MAX_ITEMS = 20;
 
-export function useNews() {
-  const [headlines, setHeadlines] = useState<NewsItem[]>([]);
+// Handles RSS <item> and Atom <entry>. Only text content is read, never markup.
+export function parseFeed(xml: string, source: string): NewsItem[] {
+  const doc = new DOMParser().parseFromString(xml, "text/xml");
+  if (doc.querySelector("parsererror")) return [];
+  return Array.from(doc.querySelectorAll("item, entry")).flatMap((el) => {
+    const title = el.querySelector("title")?.textContent?.trim();
+    if (!title) return [];
+    const when = el.querySelector("pubDate, published, updated")?.textContent;
+    const date = when ? new Date(when) : null;
+    return [{ title, source, publishedAt: date && !Number.isNaN(date.getTime()) ? date : null }];
+  });
+}
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
+// Feeds are fetched by index through our server, which only fetches the URLs
+// listed in config.json (browsers can't read most RSS feeds directly: no CORS).
+async function loadNews(feeds: Settings["news"]["feeds"]): Promise<NewsItem[]> {
+  const lists = await Promise.all(
+    feeds.map(async (f, i) => {
       try {
-        const r = await fetch(
-          `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(FEED)}`
-        );
-        const j = await r.json();
-        if (cancelled) return;
-        const items: NewsItem[] = (j?.items ?? [])
-          .map((it: { title: string; source_id?: string; pubDate?: string }) => ({
-            title: it.title,
-            source: it.source_id || FALLBACK_SOURCE,
-            publishedAt: it.pubDate,
-          }))
-          .slice(0, 15);
-        setHeadlines(items);
-      } catch (e) {
-        console.error("[mirror] news load failed", e);
+        const r = await fetch(`/api/feed/${i}`, { signal: AbortSignal.timeout(20_000) });
+        return r.ok ? parseFeed(await r.text(), f.name) : [];
+      } catch {
+        return [];
       }
-    };
-    load();
-    const id = setInterval(load, 1000 * 60 * 10);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
+    }),
+  );
+  const items = lists.flat();
+  if (items.length === 0 && feeds.length > 0) throw new Error("no feed could be loaded");
+  return items
+    .sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0))
+    .slice(0, MAX_ITEMS);
+}
 
-  return headlines;
+export function useNews(feeds: Settings["news"]["feeds"], enabled: boolean) {
+  return (
+    useQuery({
+      queryKey: ["news", JSON.stringify(feeds)],
+      queryFn: () => loadNews(feeds),
+      enabled: enabled && feeds.length > 0,
+      refetchInterval: REFRESH_MS,
+      staleTime: REFRESH_MS,
+    }).data ?? []
+  );
 }

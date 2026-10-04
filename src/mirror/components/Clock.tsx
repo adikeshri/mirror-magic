@@ -1,43 +1,42 @@
-import { useClock } from "../useClock";
+import { useNow } from "../useClock";
 
-function getWeekNumber(d: Date) {
+// ISO-8601 week number.
+function isoWeek(d: Date) {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const day = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - day);
   const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  return Math.ceil(((+date - +yearStart) / 86400000 + 1) / 7);
+  return Math.ceil(((+date - +yearStart) / 86_400_000 + 1) / 7);
 }
 
-export function Clock({ use24h }: { use24h: boolean }) {
-  const now = useClock();
-  let hours = now.getHours();
-  const ampm = hours >= 12 ? "PM" : "AM";
-  if (!use24h) {
-    hours = hours % 12;
-    if (hours === 0) hours = 12;
-  }
-  const mins = now.getMinutes().toString().padStart(2, "0");
-
-  const dateLine = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+export function Clock({ hour24, locale }: { hour24: boolean; locale?: string }) {
+  const now = useNow(1000);
+  const parts = new Intl.DateTimeFormat(locale, {
+    hour: hour24 ? "2-digit" : "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: hour24 ? "h23" : "h12",
+  }).formatToParts(now);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
+  const date = now.toLocaleDateString(locale, { weekday: "long", month: "long", day: "numeric" });
 
   return (
-    <div className="leading-none">
-      <div className="thin text-bright" style={{ fontSize: "8rem", lineHeight: 1 }}>
-        {use24h ? hours.toString().padStart(2, "0") : hours}
-        <span className="blink mx-1">:</span>
-        {mins}
-        {!use24h && (
-          <span className="light text-dim ml-3" style={{ fontSize: "2rem" }}>
-            {ampm}
-          </span>
-        )}
+    <div>
+      <time
+        dateTime={now.toISOString()}
+        className="flex items-start leading-none text-bright tabular-nums"
+        style={{ fontWeight: 100, fontSize: "7.5rem", letterSpacing: "-0.02em" }}
+      >
+        {part("hour")}:{part("minute")}
+        <span className="ml-[0.15em] mt-[0.12em] flex flex-col text-dim" style={{ fontSize: "0.28em", fontWeight: 300 }}>
+          <span>{part("second")}</span>
+          {!hour24 && <span className="mt-[0.2em] text-faint">{part("dayPeriod")}</span>}
+        </span>
+      </time>
+      <div className="mt-[0.6rem] text-normal" style={{ fontSize: "1.9rem", fontWeight: 300 }}>
+        {date}
       </div>
-      <div className="text-normal light text-xl mt-2">{dateLine}</div>
-      <div className="label-xs mt-1">Week {getWeekNumber(now)}</div>
+      <div className="label mt-[0.5rem]">Week {isoWeek(now)}</div>
     </div>
   );
 }

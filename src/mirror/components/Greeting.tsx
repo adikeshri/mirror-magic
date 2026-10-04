@@ -1,13 +1,19 @@
-import { useClock } from "../useClock";
+function greetingFor(hour: number) {
+  if (hour < 5) return "Still up";
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
 
-export function Greeting({ name }: { name: string }) {
-  const now = useClock();
-  const h = now.getHours();
-  const greeting =
-    h < 5 ? "Still up," : h < 12 ? "Good morning," : h < 18 ? "Good afternoon," : "Good evening,";
+export function Greeting({ now, name }: { now: Date; name: string }) {
   return (
-    <div className="text-normal light text-2xl fade-in-text">
-      {greeting} <span className="text-bright">{name || "friend"}</span>
-    </div>
+    <p className="text-normal" style={{ fontSize: "2.4rem", fontWeight: 100 }}>
+      {greetingFor(now.getHours())}
+      {name && (
+        <>
+          , <span className="text-bright" style={{ fontWeight: 300 }}>{name}</span>
+        </>
+      )}
+    </p>
   );
 }

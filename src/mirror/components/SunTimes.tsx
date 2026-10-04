@@ -1,20 +1,17 @@
 import { Sunrise, Sunset } from "lucide-react";
-import { WeatherData } from "../useWeather";
 
-function fmt(iso: string) {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-}
-
-export function SunTimes({ data }: { data: WeatherData | null }) {
-  if (!data) return null;
+export function SunTimes({ sunrise, sunset, hour24, locale }: { sunrise: string; sunset: string; hour24: boolean; locale?: string }) {
+  // Open-Meteo returns local wall-clock times ("2026-10-05T06:12") for the location.
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit", hourCycle: hour24 ? "h23" : "h12" });
   return (
-    <div className="mt-2 flex justify-end gap-5 text-dim light text-sm">
-      <span className="inline-flex items-center gap-1">
-        <Sunrise size={16} strokeWidth={1} /> {fmt(data.current.sunrise)}
+    <span className="inline-flex gap-[1rem] whitespace-nowrap">
+      <span className="inline-flex items-center gap-[0.35em] text-dim">
+        <Sunrise size="1.1em" strokeWidth={1.25} aria-label="Sunrise" /> {fmt(sunrise)}
       </span>
-      <span className="inline-flex items-center gap-1">
-        <Sunset size={16} strokeWidth={1} /> {fmt(data.current.sunset)}
+      <span className="inline-flex items-center gap-[0.35em] text-dim">
+        <Sunset size="1.1em" strokeWidth={1.25} aria-label="Sunset" /> {fmt(sunset)}
       </span>
-    </div>
+    </span>
   );
 }

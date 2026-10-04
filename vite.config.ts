@@ -1,22 +1,24 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { componentTagger } from "lovable-tagger";
+import path from "node:path";
+import { createApi } from "./server/api.ts";
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-    hmr: {
-      overlay: false,
-    },
-  },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+// Mounts the same /api routes the production server uses (server/index.ts),
+// so dev, preview and prod behave identically.
+function mirrorApi(): Plugin {
+  const api = createApi(path.resolve(process.env.MIRROR_CONFIG ?? "config.json"));
+  return {
+    name: "mirror-api",
+    configureServer: (server) => void server.middlewares.use(api),
+    configurePreviewServer: (server) => void server.middlewares.use(api),
+  };
+}
+
+export default defineConfig({
+  server: { host: "127.0.0.1", port: 8080 },
+  preview: { host: "127.0.0.1", port: 8080 },
+  plugins: [react(), mirrorApi()],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-    dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
+    alias: { "@": path.resolve(__dirname, "./src") },
   },
-}));
+});

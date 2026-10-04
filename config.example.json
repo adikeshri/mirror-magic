@@ -1,0 +1,33 @@
+{
+  "name": "",
+  "locale": "",
+  "hour24": false,
+  "units": "metric",
+  "location": { "lat": 51.5072, "lon": -0.1276, "name": "London" },
+
+  "modules": {
+    "greeting": true,
+    "clock": true,
+    "weather": true,
+    "forecast": true,
+    "markets": true,
+    "news": true,
+    "quote": true,
+    "onThisDay": true,
+    "network": false
+  },
+
+  "markets": {
+    "crypto": [
+      { "id": "bitcoin", "label": "BTC" },
+      { "id": "ethereum", "label": "ETH" }
+    ],
+    "cryptoCurrency": "usd",
+    "fx": [{ "from": "EUR", "to": "USD" }],
+    "indices": [{ "symbol": "^GSPC", "label": "S&P 500" }]
+  },
+
+  "news": {
+    "feeds": [{ "url": "https://feeds.bbci.co.uk/news/world/rss.xml", "name": "BBC" }]
+  }
+}

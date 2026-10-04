@@ -1,32 +1,60 @@
-import { useCallback, useEffect, useState } from "react";
-import { DEFAULT_SETTINGS, Settings } from "./types";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Overrides, resolveSettings } from "./config";
 
-const KEY = "mirror.settings.v1";
+const KEY = "mirror.settings.v2";
+const LEGACY_KEYS = ["mirror.settings.v1"];
+
+function readOverrides(): Overrides {
+  try {
+    LEGACY_KEYS.forEach((k) => localStorage.removeItem(k));
+    const parsed: unknown = JSON.parse(localStorage.getItem(KEY) ?? "{}");
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
+    const o = parsed as Overrides;
+    if (o.modules !== undefined && (typeof o.modules !== "object" || o.modules === null)) delete o.modules;
+    return o;
+  } catch {
+    return {};
+  }
+}
+
+function writeOverrides(o: Overrides) {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(o));
+  } catch {
+    /* storage full or blocked: settings just won't persist */
+  }
+}
+
+async function fetchFileConfig(): Promise<unknown> {
+  // Missing when the build is hosted without the bundled server; defaults apply.
+  const r = await fetch("/api/config", { signal: AbortSignal.timeout(5000) });
+  return r.ok ? r.json() : {};
+}
 
 export function useSettings() {
-  const [settings, setSettings] = useState<Settings>(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (!raw) return DEFAULT_SETTINGS;
-      const parsed = JSON.parse(raw);
-      // Migrate existing installs to Celsius by default.
-      return { ...DEFAULT_SETTINGS, ...parsed, unit: "celsius" };
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
+  const file = useQuery({
+    queryKey: ["config"],
+    queryFn: fetchFileConfig,
+    staleTime: Infinity,
+    retry: 1,
   });
+  const [overrides, setOverrides] = useState<Overrides>(readOverrides);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(settings));
-    } catch {
-      /* ignore */
-    }
-  }, [settings]);
+  const settings = useMemo(() => resolveSettings(file.data, overrides), [file.data, overrides]);
 
-  const update = useCallback((patch: Partial<Settings>) => {
-    setSettings((s) => ({ ...s, ...patch }));
+  const update = useCallback((patch: Overrides) => {
+    setOverrides((prev) => {
+      const next = { ...prev, ...patch, modules: { ...prev.modules, ...patch.modules } };
+      writeOverrides(next);
+      return next;
+    });
   }, []);
 
-  return { settings, update };
+  const reset = useCallback(() => {
+    writeOverrides({});
+    setOverrides({});
+  }, []);
+
+  return { settings, update, reset, ready: !file.isPending };
 }

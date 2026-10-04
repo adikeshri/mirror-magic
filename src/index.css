@@ -2,110 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Magic Mirror design system — pure black background, thin white text.
-   All colors MUST be HSL. */
+/* Built for a monitor behind two-way glass: pure black lets the mirror
+   reflect, and brightness alone carries the hierarchy. */
+:root {
+  --bright: 0 0% 100%;
+  --normal: 0 0% 84%;
+  --dim: 0 0% 60%;
+  --faint: 0 0% 40%;
+  --up: 145 45% 62%;
+  --down: 6 75% 68%;
 
-@layer base {
-  :root {
-    /* Mirror palette */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
-
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 100%;
-
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 8%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 6%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 0 0% 10%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 15%;
-    --input: 0 0% 12%;
-    --ring: 0 0% 80%;
-
-    --radius: 0.25rem;
-
-    /* AQI semantic tokens */
-    --aqi-good: 130 60% 55%;
-    --aqi-moderate: 50 90% 60%;
-    --aqi-unhealthy-sensitive: 30 90% 60%;
-    --aqi-unhealthy: 10 80% 60%;
-    --aqi-very-unhealthy: 290 60% 60%;
-    --aqi-hazardous: 0 70% 45%;
-
-    /* Mirror text dimming tiers */
-    --text-bright: 0 0% 100%;
-    --text-normal: 0 0% 85%;
-    --text-dim: 0 0% 60%;
-    --text-faint: 0 0% 40%;
-  }
+  --aqi-good: 130 55% 58%;
+  --aqi-moderate: 50 85% 60%;
+  --aqi-sensitive: 30 90% 62%;
+  --aqi-unhealthy: 10 80% 62%;
+  --aqi-very-unhealthy: 290 55% 65%;
+  --aqi-hazardous: 345 70% 50%;
 }
 
 @layer base {
-  * {
-    @apply border-border;
+  /* Everything is sized in rem, and rem follows the screen's short side, so
+     the layout reads the same on a 1080p panel or a 4K one, either way up. */
+  html {
+    font-size: clamp(10px, 1.6vmin, 34px);
+    background: #000;
+    color: hsl(var(--normal));
   }
 
-  html, body, #root {
-    @apply bg-background text-foreground;
+  html,
+  body,
+  #root {
     height: 100%;
     margin: 0;
     overflow: hidden;
   }
 
   body {
-    font-family: 'Roboto', system-ui, sans-serif;
-    font-weight: 200;
+    font-family: "Roboto", system-ui, sans-serif;
+    font-weight: 300;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  [data-idle="true"],
+  [data-idle="true"] * {
+    cursor: none;
+  }
+}
+
+@layer components {
+  .mirror {
+    display: grid;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 5vmin;
+    gap: 4vmin 6vmin;
+    /* Portrait: the usual orientation for a mirror. */
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr auto auto;
+    grid-template-areas:
+      "tl tr"
+      "tl tr"
+      "bc bc"
+      "bl br";
+  }
+
+  @media (orientation: landscape) {
+    .mirror {
+      grid-template-columns: 1fr 1.1fr 1fr;
+      grid-template-rows: auto 1fr auto;
+      grid-template-areas:
+        "tl . tr"
+        "tl . tr"
+        "bl bc br";
+    }
+  }
+
+  .label {
+    @apply mb-[0.6em] text-faint uppercase;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.22em;
   }
 }
 
 @layer utilities {
-  .text-bright { color: hsl(var(--text-bright)); }
-  .text-normal { color: hsl(var(--text-normal)); }
-  .text-dim    { color: hsl(var(--text-dim)); }
-  .text-faint  { color: hsl(var(--text-faint)); }
+  .text-bright { color: hsl(var(--bright)); }
+  .text-normal { color: hsl(var(--normal)); }
+  .text-dim { color: hsl(var(--dim)); }
+  .text-faint { color: hsl(var(--faint)); }
+  .text-up { color: hsl(var(--up)); }
+  .text-down { color: hsl(var(--down)); }
 
-  .label-xs {
-    @apply text-faint uppercase tracking-[0.2em];
-    font-size: 0.7rem;
-    font-weight: 300;
+  .fade-in {
+    animation: fade-in 1.2s ease-out both;
   }
 
-  .thin   { font-weight: 100; }
-  .light  { font-weight: 200; }
-  .normal { font-weight: 300; }
-
-  .fade-in-text {
-    animation: mirror-fade-in 0.6s ease-out;
+  /* Shifts everything a few pixels every ten minutes so static text never
+     burns into OLED or plasma panels. Slow enough to go unnoticed. */
+  .drift {
+    animation: drift 40min steps(1) infinite;
   }
+}
 
-  @keyframes mirror-fade-in {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
-  @keyframes mirror-blink {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.3; }
-  }
-  .blink { animation: mirror-blink 1s ease-in-out infinite; }
+@keyframes drift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(0.5vmin, 0.3vmin); }
+  50% { transform: translate(-0.3vmin, 0.5vmin); }
+  75% { transform: translate(0.4vmin, -0.4vmin); }
+}
 
-  /* Hide scrollbars on the mirror */
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+@media (prefers-reduced-motion: reduce) {
+  .fade-in { animation: none; }
 }

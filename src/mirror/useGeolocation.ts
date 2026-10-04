@@ -1,25 +1,23 @@
 import { useEffect, useState } from "react";
-import { Coords, Settings } from "./types";
+import { Coords, Settings } from "./config";
 
-export function useGeolocation(settings: Settings) {
-  const [coords, setCoords] = useState<Coords | null>(null);
+// Configured location wins; otherwise ask the browser (needs https or localhost).
+export function useGeolocation(location: Settings["location"]) {
+  const [browserCoords, setBrowserCoords] = useState<Coords | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (settings.manualLat != null && settings.manualLon != null) {
-      setCoords({ lat: settings.manualLat, lon: settings.manualLon, city: settings.manualCity });
-      return;
-    }
+    if (location) return;
     if (!("geolocation" in navigator)) {
       setError("Geolocation unavailable");
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      (pos) => setBrowserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
       (err) => setError(err.message),
-      { enableHighAccuracy: false, maximumAge: 1000 * 60 * 60, timeout: 10000 }
+      { enableHighAccuracy: false, maximumAge: 60 * 60 * 1000, timeout: 15_000 },
     );
-  }, [settings.manualLat, settings.manualLon, settings.manualCity]);
+  }, [location]);
 
-  return { coords, error };
+  return { coords: location ?? browserCoords, error: location ? null : error };
 }

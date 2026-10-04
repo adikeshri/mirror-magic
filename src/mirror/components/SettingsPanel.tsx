@@ -1,136 +1,190 @@
-import { useEffect, useState } from "react";
-import { Settings as SettingsIcon, X } from "lucide-react";
-import { Settings } from "../types";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Settings as SettingsIcon } from "lucide-react";
+import type { ModuleName, Overrides, Settings } from "../config";
+
+const MODULE_LABELS: Record<ModuleName, string> = {
+  greeting: "Greeting",
+  clock: "Clock",
+  weather: "Weather",
+  forecast: "Forecast",
+  markets: "Markets",
+  news: "Headlines",
+  quote: "Quote",
+  onThisDay: "On this day",
+  network: "Internet speed",
+};
 
 type Props = {
   settings: Settings;
-  onChange: (patch: Partial<Settings>) => void;
+  onChange: (patch: Overrides) => void;
+  onReset: () => void;
 };
 
-export function SettingsPanel({ settings, onChange }: Props) {
-  const [open, setOpen] = useState(false);
+const field = "mt-1 w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-bright outline-none focus:border-white/50";
+
+// Hidden settings: Shift + S, or the near-invisible gear in the corner.
+// Changes are saved on this device only; config.json holds the defaults.
+export function SettingsPanel({ settings, onChange, onReset }: Props) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [lat, setLat] = useState("");
+  const [lon, setLon] = useState("");
+  const [place, setPlace] = useState("");
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const open = () => {
+    setLat(settings.location ? String(settings.location.lat) : "");
+    setLon(settings.location ? String(settings.location.lon) : "");
+    setPlace(settings.location?.name ?? "");
+    setLocationError(null);
+    dialog.current?.showModal();
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.shiftKey && (e.key === "S" || e.key === "s")) {
-        setOpen((o) => !o);
-      }
-      if (e.key === "Escape") setOpen(false);
+      if (!e.shiftKey || e.key.toLowerCase() !== "s") return;
+      if (e.target instanceof HTMLInputElement) return; // typing a capital S
+      if (dialog.current?.open) dialog.current.close();
+      else open();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  });
+
+  const saveLocation = (e: FormEvent) => {
+    e.preventDefault();
+    const la = Number(lat);
+    const lo = Number(lon);
+    if (lat.trim() === "" || lon.trim() === "" || !(Math.abs(la) <= 90) || !(Math.abs(lo) <= 180)) {
+      setLocationError("Latitude must be -90 to 90 and longitude -180 to 180.");
+      return;
+    }
+    setLocationError(null);
+    onChange({ location: { lat: la, lon: lo, name: place.trim() || undefined } });
+  };
 
   return (
     <>
       <button
+        type="button"
         aria-label="Open settings"
-        onClick={() => setOpen(true)}
-        className="fixed bottom-3 right-3 w-8 h-8 rounded-full text-faint hover:text-bright opacity-20 hover:opacity-100 transition-opacity flex items-center justify-center"
+        onClick={open}
+        className="fixed bottom-2 right-2 grid size-8 place-items-center text-faint opacity-10 transition-opacity hover:opacity-100 focus-visible:opacity-100"
       >
         <SettingsIcon size={16} strokeWidth={1.5} />
       </button>
 
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="bg-popover border border-border rounded-md p-6 w-full max-w-md text-foreground"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="light text-lg">Mirror Settings</h2>
-              <button onClick={() => setOpen(false)} aria-label="Close">
-                <X size={18} className="text-dim hover:text-bright" />
-              </button>
-            </div>
+      <dialog
+        ref={dialog}
+        aria-labelledby="settings-title"
+        onClick={(e) => e.target === dialog.current && dialog.current.close()}
+        className="w-[min(32rem,92vw)] rounded-lg border border-white/15 bg-neutral-950 p-0 text-[15px] text-normal backdrop:bg-black/80"
+      >
+        <div className="max-h-[85vh] space-y-6 overflow-y-auto p-6">
+          <header className="flex items-baseline justify-between">
+            <h2 id="settings-title" className="text-lg text-bright">
+              Mirror settings
+            </h2>
+            <span className="text-xs text-faint">Saved on this device</span>
+          </header>
 
-            <div className="space-y-4">
-              <div>
-                <Label className="label-xs">Your name</Label>
-                <Input
-                  value={settings.name}
-                  onChange={(e) => onChange({ name: e.target.value })}
-                  className="mt-1 bg-input border-border"
-                />
-              </div>
+          <label className="block">
+            <span className="text-sm text-dim">Your name</span>
+            <input
+              className={field}
+              value={settings.name}
+              maxLength={40}
+              autoComplete="off"
+              onChange={(e) => onChange({ name: e.target.value })}
+            />
+          </label>
 
-              <div>
-                <Label className="label-xs">iCal feed URL</Label>
-                <Input
-                  value={settings.icalUrl}
-                  onChange={(e) => onChange({ icalUrl: e.target.value })}
-                  placeholder="https://calendar.google.com/calendar/ical/.../basic.ics"
-                  className="mt-1 bg-input border-border"
-                />
-                <p className="text-faint text-xs mt-1 light">
-                  Events with "TODO" or "[reminder]" in the title appear as reminders.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label className="label-xs">24-hour clock</Label>
-                <Switch
-                  checked={settings.use24h}
-                  onCheckedChange={(v) => onChange({ use24h: v })}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label className="label-xs">Use Celsius</Label>
-                <Switch
-                  checked={settings.unit === "celsius"}
-                  onCheckedChange={(v) => onChange({ unit: v ? "celsius" : "fahrenheit" })}
-                />
-              </div>
-
-              <div>
-                <Label className="label-xs">Manual location (if geolocation denied)</Label>
-                <div className="grid grid-cols-3 gap-2 mt-1">
-                  <Input
-                    placeholder="City"
-                    value={settings.manualCity ?? ""}
-                    onChange={(e) => onChange({ manualCity: e.target.value })}
-                    className="bg-input border-border"
-                  />
-                  <Input
-                    placeholder="Lat"
-                    inputMode="decimal"
-                    value={settings.manualLat ?? ""}
-                    onChange={(e) =>
-                      onChange({ manualLat: e.target.value ? Number(e.target.value) : undefined })
-                    }
-                    className="bg-input border-border"
-                  />
-                  <Input
-                    placeholder="Lon"
-                    inputMode="decimal"
-                    value={settings.manualLon ?? ""}
-                    onChange={(e) =>
-                      onChange({ manualLon: e.target.value ? Number(e.target.value) : undefined })
-                    }
-                    className="bg-input border-border"
-                  />
-                </div>
-              </div>
-
-              <p className="text-faint text-xs light pt-2">
-                Tip: press <kbd className="text-bright">Shift + S</kbd> anytime to toggle this panel.
-              </p>
-
-              <Button onClick={() => setOpen(false)} variant="secondary" className="w-full">
-                Done
-              </Button>
-            </div>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={settings.hour24} onChange={(e) => onChange({ hour24: e.target.checked })} />
+              24-hour clock
+            </label>
+            <label className="flex items-center gap-2">
+              <span className="text-dim">Units</span>
+              <select
+                className="rounded border border-white/15 bg-neutral-900 px-2 py-1 text-bright"
+                value={settings.units}
+                onChange={(e) => onChange({ units: e.target.value as Settings["units"] })}
+              >
+                <option value="metric">Metric (°C)</option>
+                <option value="imperial">Imperial (°F)</option>
+              </select>
+            </label>
           </div>
+
+          <form onSubmit={saveLocation} className="space-y-2">
+            <span className="text-sm text-dim">
+              Location {settings.location ? "" : "(using this device's location)"}
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              <input className={field} placeholder="Latitude" inputMode="decimal" value={lat} onChange={(e) => setLat(e.target.value)} />
+              <input className={field} placeholder="Longitude" inputMode="decimal" value={lon} onChange={(e) => setLon(e.target.value)} />
+              <input className={field} placeholder="Name (optional)" maxLength={80} value={place} onChange={(e) => setPlace(e.target.value)} />
+            </div>
+            {locationError && <p className="text-sm text-down">{locationError}</p>}
+            <div className="flex gap-2">
+              <button type="submit" className="rounded border border-white/20 px-3 py-1.5 text-bright hover:bg-white/10">
+                Save location
+              </button>
+              {settings.location && (
+                <button
+                  type="button"
+                  className="rounded px-3 py-1.5 text-dim hover:text-bright"
+                  onClick={() => onChange({ location: null })}
+                >
+                  Use device location
+                </button>
+              )}
+            </div>
+          </form>
+
+          <fieldset>
+            <legend className="mb-2 text-sm text-dim">Modules</legend>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {(Object.keys(MODULE_LABELS) as ModuleName[]).map((m) => (
+                <label key={m} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={settings.modules[m]}
+                    onChange={(e) => onChange({ modules: { [m]: e.target.checked } })}
+                  />
+                  {MODULE_LABELS[m]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <p className="text-xs text-faint">
+            Markets, news feeds and locale are set in <code className="text-dim">config.json</code>. Press{" "}
+            <kbd className="text-dim">Shift + S</kbd> to toggle this panel.
+          </p>
+
+          <footer className="flex justify-between">
+            <button
+              type="button"
+              className="rounded px-3 py-1.5 text-dim hover:text-bright"
+              onClick={() => {
+                onReset();
+                dialog.current?.close();
+              }}
+            >
+              Reset to config.json
+            </button>
+            <button
+              type="button"
+              autoFocus
+              className="rounded bg-white/90 px-4 py-1.5 text-black hover:bg-white"
+              onClick={() => dialog.current?.close()}
+            >
+              Done
+            </button>
+          </footer>
         </div>
-      )}
+      </dialog>
     </>
   );
 }

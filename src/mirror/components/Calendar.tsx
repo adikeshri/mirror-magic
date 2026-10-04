@@ -1,37 +1,51 @@
-import { CalendarEvent } from "../types";
+import { Circle } from "lucide-react";
 
-function relativeDay(d: Date) {
-  const now = new Date();
-  const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate());
-  const diffDays = Math.round((+startOfDay(d) - +startOfDay(now)) / 86400000);
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Tomorrow";
-  if (diffDays < 7) return d.toLocaleDateString(undefined, { weekday: "long" });
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+// Visual only: no calendar source is wired up, so nothing renders until one
+// supplies events. Kept so a future source has a ready-made view.
+export type CalendarEvent = {
+  uid: string;
+  title: string;
+  start: Date;
+  allDay: boolean;
+  isReminder: boolean;
+};
+
+function relativeDay(d: Date, locale?: string) {
+  const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const days = Math.round((startOfDay(d) - startOfDay(new Date())) / 86_400_000);
+  if (days >= 0 && days < 2) return new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(days, "day");
+  if (days < 7) return d.toLocaleDateString(locale, { weekday: "long" });
+  return d.toLocaleDateString(locale, { month: "short", day: "numeric" });
 }
 
-function fmtTime(d: Date, allDay: boolean) {
-  if (allDay) return "all day";
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-}
-
-export function Calendar({ events }: { events: CalendarEvent[] }) {
+export function Calendar({ events, locale }: { events: CalendarEvent[]; locale?: string }) {
   const upcoming = events.filter((e) => !e.isReminder).slice(0, 5);
+  const reminders = events.filter((e) => e.isReminder).slice(0, 5);
+  if (upcoming.length === 0 && reminders.length === 0) return null;
 
   return (
-    <div className="mt-10 fade-in-text">
-      <div className="label-xs mb-3">Upcoming</div>
-      {upcoming.length === 0 ? (
-        <div className="text-faint light text-sm">No upcoming events</div>
-      ) : (
-        <ul className="space-y-2">
+    <div style={{ fontSize: "1.2rem" }}>
+      {upcoming.length > 0 && (
+        <ul className="space-y-[0.3rem]">
           {upcoming.map((e) => (
-            <li key={e.uid} className="grid grid-cols-[5.5rem_1fr] gap-3 light">
-              <span className="text-dim text-sm pt-0.5">{relativeDay(e.start)}</span>
+            <li key={e.uid} className="grid grid-cols-[7em_1fr] gap-[0.8em]">
+              <span className="text-dim capitalize">{relativeDay(e.start, locale)}</span>
               <span>
-                <span className="text-bright">{e.title}</span>
-                <span className="text-faint text-sm ml-2">{fmtTime(e.start, e.allDay)}</span>
+                <span className="text-bright">{e.title}</span>{" "}
+                <span className="text-faint" style={{ fontSize: "0.85em" }}>
+                  {e.allDay ? "all day" : e.start.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}
+                </span>
               </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {reminders.length > 0 && (
+        <ul className="mt-[0.8rem] space-y-[0.3rem]">
+          {reminders.map((e) => (
+            <li key={e.uid} className="flex items-center gap-[0.5em] text-normal">
+              <Circle size="0.6em" strokeWidth={1.5} className="text-dim" aria-hidden />
+              {e.title}
             </li>
           ))}
         </ul>

@@ -1,27 +1,25 @@
-import { WeatherData } from "../useWeather";
+import { parseLocalDate, type WeatherData } from "../useWeather";
 import { weatherInfo } from "../weatherIcons";
 
-export function Forecast({ data }: { data: WeatherData | null }) {
-  if (!data) return null;
+export function Forecast({ daily, locale }: { daily: WeatherData["daily"]; locale?: string }) {
   return (
-    <div className="mt-6 fade-in-text">
-      <div className="label-xs mb-2 text-right">5-Day Forecast</div>
-      <div className="space-y-2">
-        {data.daily.map((d) => {
-          const { Icon } = weatherInfo(d.code, true);
-          const day = new Date(d.date).toLocaleDateString(undefined, { weekday: "short" });
+    <table className="ml-auto border-separate border-spacing-x-[1.1rem] border-spacing-y-[0.35rem] text-right tabular-nums" style={{ fontSize: "1.25rem" }}>
+      <tbody>
+        {daily.map((d, i) => {
+          const { Icon, label } = weatherInfo(d.code);
           return (
-            <div key={d.date} className="grid grid-cols-[1fr_auto_auto] gap-4 items-center text-normal light">
-              <span className="text-right text-dim">{day}</span>
-              <Icon size={20} strokeWidth={1} className="text-normal" />
-              <span className="text-right tabular-nums w-20">
-                <span className="text-bright">{d.high}°</span>
-                <span className="text-faint"> / {d.low}°</span>
-              </span>
-            </div>
+            // Later days fade out, the classic MagicMirror cue for "less certain".
+            <tr key={d.date} style={{ opacity: 1 - i * 0.14 }}>
+              <td className="text-dim">{parseLocalDate(d.date).toLocaleDateString(locale, { weekday: "short" })}</td>
+              <td>
+                <Icon size="1.3em" strokeWidth={1.1} className="inline text-normal" aria-label={label} />
+              </td>
+              <td className="text-bright">{d.high}°</td>
+              <td className="text-faint">{d.low}°</td>
+            </tr>
           );
         })}
-      </div>
-    </div>
+      </tbody>
+    </table>
   );
 }

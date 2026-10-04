@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Per-mirror settings (copy config.example.json)
+config.json
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Server cache (market quotes)
+.cache
+*.tsbuildinfo
