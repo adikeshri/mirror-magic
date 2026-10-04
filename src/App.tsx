@@ -62,7 +62,7 @@ function Mirror() {
   const now = useNow(60_000);
   const idle = useIdle();
 
-  const { coords, error: locationError } = useGeolocation(settings.location);
+  const { coords, error: locationError } = useGeolocation(settings.location, settings.autoLocation);
   const weather = useWeather(on.weather || on.forecast ? coords : null, units);
   const place = usePlaceName(on.weather ? coords : null);
   const markets = useMarkets(settings.markets, on.markets);

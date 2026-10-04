@@ -47,7 +47,8 @@ field's default, and the rest of the mirror keeps running.
 | `locale` | `""` | BCP 47 tag such as `en-GB` or `hi-IN`. Empty uses the browser's locale. |
 | `hour24` | `false` | 24-hour clock. |
 | `units` | `"metric"` | `"metric"` (°C, km/h) or `"imperial"` (°F, mph). |
-| `location` | `null` | `{ "lat": 51.5, "lon": -0.12, "name": "London" }`. When `null`, the browser's location is used, which needs `https` or `localhost` and a granted permission. `name` is optional and is looked up if missing. |
+| `location` | `null` | `{ "lat": 51.5, "lon": -0.12, "name": "London" }`. The most accurate option, so set it if you can. `name` is optional and is looked up if missing. |
+| `autoLocation` | `true` | Last resort when `location` is `null` and the browser can't provide one: estimate the location from this machine's public IP (city-level, can be off by tens of km). The order is `location`, then the browser's own location (needs `https` or `localhost` and often doesn't work on a Pi), then the IP estimate. Set `false` to never send your IP to a lookup service. |
 | `modules.*` | all on, except `network` | Show or hide `greeting`, `clock`, `weather`, `forecast`, `markets`, `news`, `quote`, `onThisDay` and `network` (internet speed). |
 | `markets.crypto` | BTC, ETH | `[{ "id": "<CoinGecko id>", "label": "BTC" }]` |
 | `markets.cryptoCurrency` | `"usd"` | Currency the crypto prices are quoted in. |
@@ -75,6 +76,7 @@ Set these in the shell, or copy [`.env.example`](.env.example) to `.env`.
 | --- | --- | --- |
 | Weather, forecast, AQI | [Open-Meteo](https://open-meteo.com) | browser |
 | Place name | [Nominatim / OpenStreetMap](https://nominatim.org), once per location | browser |
+| Location, when not set | [ipwho.is](https://ipwho.is), falling back to [GeoJS](https://www.geojs.io), looked up from the server's IP | server |
 | Crypto | [CoinGecko](https://www.coingecko.com) | browser |
 | Currency rates | [Frankfurter](https://frankfurter.dev) (ECB) | browser |
 | Stock indices | Yahoo Finance chart endpoint (unofficial) | server |
@@ -83,7 +85,7 @@ Set these in the shell, or copy [`.env.example`](.env.example) to `.env`.
 | Internet speed | Cloudflare speed test (off by default, ~2.5 MB every 30 min) | browser |
 | Quotes | bundled list | — |
 
-**Privacy.** Your coordinates are sent to Open-Meteo and Nominatim. Every
+**Privacy.** Your coordinates are sent to Open-Meteo and Nominatim. If you don't set a `location` and the browser can't provide one, the server's IP address is also sent to ipwho.is (or GeoJS) to find it; set `"autoLocation": false` to prevent that. Every
 service above sees the mirror's IP address. Nothing is sent anywhere else: no
 analytics, no telemetry, and fonts are self-hosted.
 

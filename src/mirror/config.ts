@@ -62,6 +62,9 @@ export const SettingsSchema = z.object({
   units: z.enum(["metric", "imperial"]).catch("metric").default("metric"),
   // null means "ask the browser for its position".
   location: Location.nullable().catch(null).default(null),
+  // With no location set, estimate one from the server's IP address. This
+  // sends that IP to a geolocation service; turn off to avoid that.
+  autoLocation: z.boolean().catch(true).default(true),
   modules: Modules.catch(Modules.parse({})).default({}),
   markets: Markets.catch(Markets.parse({})).default({}),
   news: z

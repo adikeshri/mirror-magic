@@ -1,10 +1,11 @@
 import { readFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { DEFAULT_SETTINGS, SettingsSchema, type Settings } from "../src/mirror/config.ts";
+import { getIpLocation } from "./geoip.ts";
 import { getIndexQuote } from "./yahoo.ts";
 
 // The mirror's small backend. It exists only for data browsers cannot fetch
-// themselves (no CORS): RSS feeds and Yahoo index quotes. It never proxies a
+// themselves (no CORS): RSS feeds, Yahoo index quotes and an IP-based location. It never proxies a
 // URL supplied by the client, only those listed in config.json.
 
 const FEED_TTL_MS = 10 * 60 * 1000;
@@ -80,6 +81,12 @@ export function createApi(configPath: string) {
       const config = await loadConfig(configPath);
 
       if (pathname === "/api/config") return send(res, 200, JSON.stringify(config));
+
+      if (pathname === "/api/location") {
+        if (!config.autoLocation) return send(res, 404, '{"error":"disabled"}');
+        const loc = await getIpLocation();
+        return loc ? send(res, 200, JSON.stringify(loc)) : send(res, 502, '{"error":"location unavailable"}');
+      }
 
       if (pathname === "/api/indices") {
         const quotes = await Promise.all(config.markets.indices.map((ix) => getIndexQuote(ix.symbol)));
