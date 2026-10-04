@@ -4,6 +4,7 @@
   "hour24": false,
   "units": "metric",
   "location": { "lat": 51.5072, "lon": -0.1276, "name": "London" },
+  "autoLocation": true,
 
   "modules": {
     "greeting": true,
