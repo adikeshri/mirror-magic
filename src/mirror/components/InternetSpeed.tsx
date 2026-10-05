@@ -1,5 +1,6 @@
 import { Wifi, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
+import { apiUrl } from "../fetchJson";
 
 // Downloads a few MB (relayed by Mira) to time it, so it runs rarely and the
 // module is off by default.
@@ -9,7 +10,7 @@ const INTERVAL_MS = 30 * 60 * 1000;
 
 async function measureMbps(): Promise<number | null> {
   const start = performance.now();
-  const r = await fetch(`${TEST_URL}?_=${Date.now()}`, { cache: "no-store", signal: AbortSignal.timeout(TIMEOUT_MS) });
+  const r = await fetch(apiUrl(`${TEST_URL}?_=${Date.now()}`), { cache: "no-store", signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!r.ok) return null;
   const bytes = (await r.arrayBuffer()).byteLength;
   const seconds = (performance.now() - start) / 1000;

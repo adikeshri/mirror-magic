@@ -5,8 +5,9 @@ glass, point a browser at it, and you get the time, weather, markets, headlines
 and a quote, as thin white text on pure black, so the mirror still reflects.
 
 - **No accounts, no API keys.** Every data source is free and keyless.
-- **One small server, no runtime dependencies.** It serves the app and fetches
-  the two things browsers can't fetch themselves (RSS feeds and stock indices).
+- **One backend: [Mira](https://github.com/adikeshri/mira).** The browser calls
+  Mira directly. It fetches, caches and tidies every data source, and can serve
+  this app too, so a single process runs the whole mirror.
 - **Configured with one JSON file**, plus an on-screen settings panel.
 - **Built for a mirror.** It scales to any screen and works in portrait or
   landscape. The centre stays clear for your reflection, the layout drifts a
@@ -14,26 +15,19 @@ and a quote, as thin white text on pure black, so the mirror still reflects.
 
 ## Quick start
 
-Requires Node.js 22.18 or newer, and [Mira](https://github.com/adikeshri/mira)
-(.NET 9), the backend that supplies all the data. Start Mira first:
-
-```bash
-cd ../mira
-cp config.example.json config.json   # then edit it
-dotnet run --project src/Mira.Api    # http://127.0.0.1:5080
-```
-
-Then the mirror:
+Requires Node.js 22.18+ (to build) and the .NET 9 SDK (to run Mira).
 
 ```bash
 git clone https://github.com/adikeshri/mirror-magic.git
-cd mirror-magic
-npm ci
-npm run build
-npm start                            # http://127.0.0.1:8080
+git clone https://github.com/adikeshri/mira.git
+cd mirror-magic && npm ci && npm run build && cd ../mira
+cp config.example.json config.json   # then edit it
+Mira__UiPath=$PWD/../mirror-magic/dist dotnet run --project src/Mira.Api   # http://127.0.0.1:5080
 ```
 
-For development with hot reload, run `npm run dev`. Like `npm start`, it forwards `/api` to Mira.
+Mira serves the built app and the API from the same address. For development with
+hot reload, run Mira, then `VITE_MIRA_URL=http://127.0.0.1:5080 npm run dev`
+(http://127.0.0.1:8080; Mira allows that origin via CORS).
 
 ## Configuration
 
@@ -68,20 +62,15 @@ field's default, and the rest of the mirror keeps running.
 `config.json` is re-read on every request, so after editing it you only need
 to reload the page.
 
-### Server environment
-
-Set these in the shell, or copy [`.env.example`](.env.example) to `.env`.
+### Build setting
 
 | Variable | Default | |
 | --- | --- | --- |
-| `PORT` | `8080` | |
-| `HOST` | `127.0.0.1` | Set `0.0.0.0` to reach the mirror from other devices on your network. |
-| `MIRA_URL` | `http://127.0.0.1:5080` | Where Mira runs. The server forwards `/api/*` there. |
+| `VITE_MIRA_URL` | empty (same origin) | Where Mira is, when the app isn't served by Mira itself. Set it in `.env` ([example](.env.example)) or the shell. |
 
 ## Data sources
 
-The browser talks only to this server, which forwards `/api/*` to Mira. Mira
-fetches everything else.
+The browser talks only to Mira (`/api/*`). Mira fetches everything else.
 
 | Module | Source | Fetched by |
 | --- | --- | --- |
@@ -105,50 +94,22 @@ and caches each index by its exchange's trading hours. During the session it
 refreshes every 5 minutes. Before the open it holds the last close until the
 bell. If Yahoo refuses, the last known value is shown.
 
-## Running with Docker (recommended on a Raspberry Pi)
+## Running on a Raspberry Pi
 
-Works on a Raspberry Pi 3, 4 or 5 running a **64-bit** OS, and on any other
-machine with Docker. The image is built on the device itself, so it always
-matches the CPU.
-
-```bash
-git clone https://github.com/adikeshri/mirror-magic.git
-cd mirror-magic
-docker compose up -d --build        # expects Mira on the host at :5080 (override with MIRA_URL)
-```
-
-Open `http://127.0.0.1:8080`. Docker restarts the mirror after a reboot or a
-crash (`restart: unless-stopped`), and the container reports its health to
-`docker ps`.
-
-- The container reaches Mira at `MIRA_URL` (default: Mira running on the Docker
-  host, port 5080). Mira holds `config.json` and the data caches.
-- The port is published on `127.0.0.1` only. To reach the mirror from other
-  devices, change the port mapping in `docker-compose.yml` to `"8080:8080"`.
-- The container runs as an unprivileged user with a read-only filesystem and
-  all capabilities dropped.
-
-To update: `git pull && docker compose up -d --build`.
-
-Then open it full-screen at login:
-
-```bash
-chromium-browser --kiosk --noerrdialogs --disable-infobars http://127.0.0.1:8080
-```
-
-## Running on a Raspberry Pi without Docker
-
-1. Install Node 22.18+ and build the app as in Quick start.
-2. Keep the server running with systemd, in `/etc/systemd/system/mirror.service`:
+1. Build the app (Node 22.18+) and publish Mira (.NET 9) as in Quick start. On the Pi,
+   `dotnet publish src/Mira.Api -c Release -o /opt/mira` works.
+2. Keep Mira running with systemd, in `/etc/systemd/system/mira.service`:
 
    ```ini
    [Unit]
-   Description=Mirror Magic
+   Description=Mira (Mirror Magic backend and UI)
    After=network-online.target
 
    [Service]
-   WorkingDirectory=/home/pi/mirror-magic
-   ExecStart=/usr/bin/node --env-file-if-exists=.env server/index.ts
+   WorkingDirectory=/opt/mira
+   Environment=Mira__UiPath=/home/pi/mirror-magic/dist
+   Environment=Mira__ConfigPath=/home/pi/mira-config.json
+   ExecStart=/usr/bin/dotnet /opt/mira/Mira.Api.dll
    Restart=always
    User=pi
 
@@ -159,39 +120,38 @@ chromium-browser --kiosk --noerrdialogs --disable-infobars http://127.0.0.1:8080
    Then enable it:
 
    ```bash
-   sudo systemctl enable --now mirror
+   sudo systemctl enable --now mira
    ```
 
 3. Open it full-screen at login:
 
    ```bash
-   chromium-browser --kiosk --noerrdialogs --disable-infobars http://127.0.0.1:8080
+   chromium-browser --kiosk --noerrdialogs --disable-infobars http://127.0.0.1:5080
    ```
 
 ## Development
 
 ```bash
-npm run dev         # Vite + API on http://127.0.0.1:8080
+npm run dev         # Vite on http://127.0.0.1:8080, calling Mira at VITE_MIRA_URL
 npm test            # unit tests
 npm run lint
 npm run typecheck
 ```
 
 ```
-server/            Node server: static files, and /api forwarded to Mira
 src/App.tsx        layout: which module goes in which screen region
-src/mirror/        config schema, data hooks, and components/ for each module
+src/mirror/        config schema, data hooks (all calls go to Mira), and components/
 ```
 
 ### Security notes
 
-- The server forwards only GET requests under `/api/` to `MIRA_URL`; it never
-  proxies a URL sent by a client.
-- It binds to `127.0.0.1` by default and sends a strict Content Security
-  Policy (`connect-src 'self'`), so the page can only talk to this server.
+- The app only talks to Mira. When Mira serves it, the Content Security Policy is
+  `connect-src 'self'`, so the page can't reach anywhere else.
+- Mira only fetches URLs listed in its `config.json`; it never fetches a URL sent
+  by a client, and allows cross-origin reads only from `Mira:AllowedOrigins`.
 - Feed content is rendered as text, never as HTML.
-- `/api/config` returns your settings, including your location. Only use
-  `HOST=0.0.0.0` on a network you trust.
+- `/api/config` returns your settings, including your location. Only expose Mira
+  on a network you trust.
 
 ## License
 

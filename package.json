@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "start": "node --env-file-if-exists=.env server/index.ts",
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc -b",

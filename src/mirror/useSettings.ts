@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Overrides, resolveSettings } from "./config";
+import { apiUrl } from "./fetchJson";
 
 const KEY = "mirror.settings.v2";
 const LEGACY_KEYS = ["mirror.settings.v1"];
@@ -27,8 +28,8 @@ function writeOverrides(o: Overrides) {
 }
 
 async function fetchFileConfig(): Promise<unknown> {
-  // Missing when the build is hosted without the bundled server; defaults apply.
-  const r = await fetch("/api/config", { signal: AbortSignal.timeout(5000) });
+  // Missing when Mira has no answer for this build; defaults apply.
+  const r = await fetch(apiUrl("/api/config"), { signal: AbortSignal.timeout(5000) });
   return r.ok ? r.json() : {};
 }
 
