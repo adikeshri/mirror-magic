@@ -9,6 +9,7 @@ import { useOnThisDay } from "@/mirror/useOnThisDay";
 import { useNow } from "@/mirror/useClock";
 import { Section } from "@/mirror/components/Section";
 import { Clock } from "@/mirror/components/Clock";
+import { nudgeFor } from "@/mirror/nudge";
 import { Greeting } from "@/mirror/components/Greeting";
 import { Weather } from "@/mirror/components/Weather";
 import { Forecast } from "@/mirror/components/Forecast";
@@ -124,7 +125,7 @@ function Mirror() {
       <div className="mx-auto flex max-w-[44rem] flex-col items-center gap-[1.6rem] self-end text-center" style={{ gridArea: "bc" }}>
         {on.greeting && (
           <Section>
-            <Greeting now={now} name={settings.name} />
+            <Greeting now={now} name={settings.name} nudge={weather ? nudgeFor(weather, units) : null} />
           </Section>
         )}
         {on.quote && (

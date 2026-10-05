@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Settings } from "./config";
 
-export type NewsItem = { title: string; source: string; publishedAt: Date | null };
+export type NewsItem = { title: string; source: string; url: string | null; publishedAt: Date | null };
 
 const REFRESH_MS = 10 * 60 * 1000;
 const MAX_ITEMS = 20;
@@ -15,7 +15,10 @@ export function parseFeed(xml: string, source: string): NewsItem[] {
     if (!title) return [];
     const when = el.querySelector("pubDate, published, updated")?.textContent;
     const date = when ? new Date(when) : null;
-    return [{ title, source, publishedAt: date && !Number.isNaN(date.getTime()) ? date : null }];
+    // RSS has <link>text</link>, Atom has <link href>. Only http(s) links are kept.
+    const link = el.querySelector("link");
+    const href = (link?.getAttribute("href") || link?.textContent || "").trim();
+    return [{ title, source, url: /^https?:\/\//.test(href) ? href : null, publishedAt: date && !Number.isNaN(date.getTime()) ? date : null }];
   });
 }
 

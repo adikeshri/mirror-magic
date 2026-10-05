@@ -1,4 +1,5 @@
 import type { NewsItem } from "../useNews";
+import { QR } from "./QR";
 import { useRotation } from "../useRotation";
 
 const ROTATE_MS = 15_000;
@@ -16,14 +17,17 @@ export function Headlines({ items, scope, locale }: { items: NewsItem[]; scope: 
   if (i < 0) return <p className="text-faint">Loading headlines…</p>;
   const item = items[i];
   return (
-    <div key={i} className="fade-in" aria-live="off">
-      <p className="line-clamp-4 text-normal" style={{ fontSize: "1.15rem", lineHeight: 1.45 }}>
-        {item.title}
-      </p>
-      <p className="mt-[0.4rem] text-faint" style={{ fontSize: "0.95rem" }}>
-        <span className="uppercase tracking-[0.15em]">{scope}</span> · {item.source}
-        {item.publishedAt && <> · {ago(item.publishedAt, locale)}</>}
-      </p>
+    <div key={i} className="fade-in flex items-center justify-end gap-[1rem]" aria-live="off">
+      <div>
+        <p className="line-clamp-4 text-normal" style={{ fontSize: "1.15rem", lineHeight: 1.45 }}>
+          {item.title}
+        </p>
+        <p className="mt-[0.4rem] text-faint" style={{ fontSize: "0.95rem" }}>
+          <span className="uppercase tracking-[0.15em]">{scope}</span> · {item.source}
+          {item.publishedAt && <> · {ago(item.publishedAt, locale)}</>}
+        </p>
+      </div>
+      {item.url && <QR url={item.url} />}
     </div>
   );
 }
