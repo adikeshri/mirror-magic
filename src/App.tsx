@@ -129,7 +129,7 @@ function Mirror() {
             )}
           </div>
 
-          <div className="max-w-[30rem] self-end" style={{ gridArea: "bl" }}>
+          <div className="max-w-[min(30rem,522px)] self-end" style={{ gridArea: "bl" }}>
             {on.onThisDay && history.length > 0 && (
               <Section title="On this day">
                 <OnThisDay events={history} />
@@ -150,7 +150,7 @@ function Mirror() {
             )}
           </div>
 
-          <div className="ml-auto max-w-[30rem] self-end text-right" style={{ gridArea: "br" }}>
+          <div className="ml-auto max-w-[min(30rem,522px)] self-end text-right" style={{ gridArea: "br" }}>
             {on.news && settings.news.feeds.length + settings.news.local.length > 0 && (
               <Section title="Headlines">
                 <div className="flex flex-col gap-[1.4rem]">
