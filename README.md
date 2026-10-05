@@ -54,7 +54,8 @@ field's default, and the rest of the mirror keeps running.
 | `markets.cryptoCurrency` | `"usd"` | Currency the crypto prices are quoted in. |
 | `markets.fx` | EUR/USD | `[{ "from": "USD", "to": "INR", "label": "USD ₹" }]`, from ECB rates. |
 | `markets.indices` | S&P 500 | `[{ "symbol": "^NSEI", "label": "NIFTY 50" }]`, using Yahoo Finance symbols. |
-| `news.feeds` | BBC World | `[{ "url": "https://…/rss.xml", "name": "BBC" }]`. RSS or Atom, up to 5. |
+| `news.local` | none | Same shape as `news.feeds` (up to 5), shown under the world headlines in the same Headlines section. Empty means world only. |
+| `news.feeds` | BBC, Guardian, Al Jazeera, NPR, NYT (world) | `[{ "url": "https://…/rss.xml", "name": "BBC" }]`. RSS or Atom, up to 5. |
 
 `config.json` is re-read on every request, so after editing it you only need
 to reload the page.

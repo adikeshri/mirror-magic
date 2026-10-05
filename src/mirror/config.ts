@@ -69,9 +69,17 @@ export const SettingsSchema = z.object({
   markets: Markets.catch(Markets.parse({})).default({}),
   news: z
     .object({
-      feeds: z.array(Feed).max(5).catch([]).default([{ url: "https://feeds.bbci.co.uk/news/world/rss.xml", name: "BBC" }]),
+      feeds: z.array(Feed).max(5).catch([]).default([
+        { url: "https://feeds.bbci.co.uk/news/world/rss.xml", name: "BBC" },
+        { url: "https://www.theguardian.com/world/rss", name: "Guardian" },
+        { url: "https://www.aljazeera.com/xml/rss/all.xml", name: "Al Jazeera" },
+        { url: "https://feeds.npr.org/1001/rss.xml", name: "NPR" },
+        { url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", name: "NYT" },
+      ]),
+      // A second, regional list shown under the world headlines. Empty hides it.
+      local: z.array(Feed).max(5).catch([]).default([]),
     })
-    .catch({ feeds: [] })
+    .catch({ feeds: [], local: [] })
     .default({}),
 });
 

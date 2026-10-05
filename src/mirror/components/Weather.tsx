@@ -51,9 +51,9 @@ export function Weather({ data, place, locationError, units, hour24, locale }: P
         {current.apparent != null && <>Feels {current.apparent}° · </>}
         <span className="text-normal">↑ {today.high}°</span> <span>↓ {today.low}°</span>
       </div>
-      <div className="mt-[0.6rem] flex flex-wrap justify-end gap-x-[1.2rem] gap-y-[0.3rem]" style={{ fontSize: "1.05rem" }}>
-        {data.aqi != null && <AQI aqi={data.aqi} />}
+      <div className="mt-[0.6rem] flex flex-col items-end gap-y-[0.3rem]" style={{ fontSize: "1.05rem" }}>
         <SunTimes sunrise={today.sunrise} sunset={today.sunset} hour24={hour24} locale={locale} />
+        {data.aqi != null && <AQI aqi={data.aqi} />}
       </div>
       <WeatherAlerts current={current} units={units} />
     </div>
