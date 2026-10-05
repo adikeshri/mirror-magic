@@ -21,11 +21,11 @@ export function parseFeed(xml: string, source: string): NewsItem[] {
 
 // Feeds are fetched by index through our server, which only fetches the URLs
 // listed in config.json (browsers can't read most RSS feeds directly: no CORS).
-async function loadNews(feeds: Settings["news"]["feeds"]): Promise<NewsItem[]> {
+async function loadNews(feeds: Settings["news"]["feeds"], offset: number): Promise<NewsItem[]> {
   const lists = await Promise.all(
     feeds.map(async (f, i) => {
       try {
-        const r = await fetch(`/api/feed/${i}`, { signal: AbortSignal.timeout(20_000) });
+        const r = await fetch(`/api/feed/${offset + i}`, { signal: AbortSignal.timeout(20_000) });
         return r.ok ? parseFeed(await r.text(), f.name) : [];
       } catch {
         return [];
@@ -39,11 +39,12 @@ async function loadNews(feeds: Settings["news"]["feeds"]): Promise<NewsItem[]> {
     .slice(0, MAX_ITEMS);
 }
 
-export function useNews(feeds: Settings["news"]["feeds"], enabled: boolean) {
+// `offset` is where this list starts in the server's combined feed index.
+export function useNews(feeds: Settings["news"]["feeds"], enabled: boolean, offset = 0) {
   return (
     useQuery({
-      queryKey: ["news", JSON.stringify(feeds)],
-      queryFn: () => loadNews(feeds),
+      queryKey: ["news", offset, JSON.stringify(feeds)],
+      queryFn: () => loadNews(feeds, offset),
       enabled: enabled && feeds.length > 0,
       refetchInterval: REFRESH_MS,
       staleTime: REFRESH_MS,

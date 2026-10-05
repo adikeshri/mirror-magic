@@ -95,7 +95,7 @@ export function createApi(configPath: string) {
 
       const feed = /^\/api\/feed\/(\d{1,2})$/.exec(pathname);
       if (feed) {
-        const entry = config.news.feeds[Number(feed[1])];
+        const entry = [...config.news.feeds, ...config.news.local][Number(feed[1])];
         if (!entry) return send(res, 404, '{"error":"no such feed"}');
         const body = await getFeed(entry.url);
         if (body == null) return send(res, 502, '{"error":"feed unavailable"}');

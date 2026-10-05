@@ -67,6 +67,7 @@ function Mirror() {
   const place = usePlaceName(on.weather ? coords : null);
   const markets = useMarkets(settings.markets, on.markets);
   const news = useNews(settings.news.feeds, on.news);
+  const localNews = useNews(settings.news.local, on.news, settings.news.feeds.length);
   const history = useOnThisDay(now, on.onThisDay);
 
   useEffect(() => {
@@ -134,9 +135,12 @@ function Mirror() {
       </div>
 
       <div className="ml-auto max-w-[30rem] self-end text-right" style={{ gridArea: "br" }}>
-        {on.news && settings.news.feeds.length > 0 && (
+        {on.news && settings.news.feeds.length + settings.news.local.length > 0 && (
           <Section title="Headlines">
-            <Headlines items={news} locale={locale} />
+            <div className="flex flex-col gap-[1.4rem]">
+              {settings.news.feeds.length > 0 && <Headlines items={news} scope="World" locale={locale} />}
+              {settings.news.local.length > 0 && <Headlines items={localNews} scope="Local" locale={locale} />}
+            </div>
           </Section>
         )}
       </div>

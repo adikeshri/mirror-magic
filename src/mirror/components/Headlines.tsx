@@ -11,17 +11,17 @@ function ago(date: Date, locale?: string) {
   return rtf.format(Math.round(mins / 1440), "day");
 }
 
-export function Headlines({ items, locale }: { items: NewsItem[]; locale?: string }) {
+export function Headlines({ items, scope, locale }: { items: NewsItem[]; scope: string; locale?: string }) {
   const i = useRotation(items.length, ROTATE_MS);
   if (i < 0) return <p className="text-faint">Loading headlines…</p>;
   const item = items[i];
   return (
     <div key={i} className="fade-in" aria-live="off">
-      <p className="line-clamp-3 text-bright" style={{ fontSize: "1.45rem", lineHeight: 1.35 }}>
+      <p className="line-clamp-4 text-normal" style={{ fontSize: "1.15rem", lineHeight: 1.45 }}>
         {item.title}
       </p>
-      <p className="mt-[0.4rem] text-faint" style={{ fontSize: "1rem" }}>
-        {item.source}
+      <p className="mt-[0.4rem] text-faint" style={{ fontSize: "0.95rem" }}>
+        <span className="uppercase tracking-[0.15em]">{scope}</span> · {item.source}
         {item.publishedAt && <> · {ago(item.publishedAt, locale)}</>}
       </p>
     </div>
