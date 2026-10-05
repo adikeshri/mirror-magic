@@ -75,7 +75,7 @@ describe("useGeolocation priority", () => {
     await mount(null);
     await flush();
     expect(coords()).toEqual(IP);
-    expect(fetchMock).toHaveBeenCalledWith("/api/location", expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/api\/location$/), expect.anything());
   });
 
   it("falls back to IP when the browser never answers, and a late browser fix wins", async () => {

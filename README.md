@@ -26,8 +26,8 @@ Mira__UiPath=$PWD/../mirror-magic/dist dotnet run --project src/Mira.Api   # htt
 ```
 
 Mira serves the built app and the API from the same address. For development with
-hot reload, run Mira, then `VITE_MIRA_URL=http://127.0.0.1:5080 npm run dev`
-(http://127.0.0.1:8080; Mira allows that origin via CORS).
+hot reload, run Mira, then `npm run dev` (http://127.0.0.1:8080). Dev calls
+Mira at `http://127.0.0.1:5080` by default, which Mira allows via CORS.
 
 ## Configuration
 
@@ -66,7 +66,7 @@ to reload the page.
 
 | Variable | Default | |
 | --- | --- | --- |
-| `VITE_MIRA_URL` | empty (same origin) | Where Mira is, when the app isn't served by Mira itself. Set it in `.env` ([example](.env.example)) or the shell. |
+| `VITE_MIRA_URL` | dev: `http://127.0.0.1:5080`; build: same origin | Where Mira is, when the app isn't served by Mira itself. Set it in `.env` ([example](.env.example)) or the shell. |
 
 ## Data sources
 
