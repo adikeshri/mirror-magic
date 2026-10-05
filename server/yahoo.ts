@@ -8,7 +8,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-export type IndexQuote = { symbol: string; value: number; changePct: number | null; asOf: number };
+export type IndexQuote = { symbol: string; value: number; changePct: number | null; trend: number[]; asOf: number };
 type Period = { start: number; end: number }; // epoch seconds, from Yahoo
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36";
@@ -65,18 +65,20 @@ function spaced<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 async function fetchQuote(symbol: string): Promise<{ quote: IndexQuote; period: Period | null }> {
-  // range=1d makes chartPreviousClose the previous session's close.
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+  // Daily closes for the last week; the last bar is today's (live) one.
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=7d`;
   const r = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(10_000) });
   if (!r.ok) throw new Error(`yahoo ${symbol} HTTP ${r.status}`);
-  const meta = (await r.json())?.chart?.result?.[0]?.meta;
+  const result = (await r.json())?.chart?.result?.[0];
+  const meta = result?.meta;
+  const closes = ((result?.indicators?.quote?.[0]?.close ?? []) as unknown[]).filter((v): v is number => typeof v === "number");
   const value = meta?.regularMarketPrice;
   if (typeof value !== "number") throw new Error(`yahoo ${symbol}: no price`);
-  const prev = meta.chartPreviousClose ?? meta.previousClose;
+  const prev = closes.length > 1 ? closes[closes.length - 2] : (meta.chartPreviousClose ?? meta.previousClose);
   const changePct = typeof prev === "number" && prev > 0 ? ((value - prev) / prev) * 100 : null;
   const regular = meta.currentTradingPeriod?.regular;
   const period = typeof regular?.start === "number" && typeof regular?.end === "number" ? regular : null;
-  return { quote: { symbol, value, changePct, asOf: Date.now() }, period };
+  return { quote: { symbol, value, changePct, trend: closes, asOf: Date.now() }, period };
 }
 
 export function getIndexQuote(symbol: string): Promise<IndexQuote | null> {
