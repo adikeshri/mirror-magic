@@ -10,6 +10,7 @@ const MODULE_LABELS: Record<ModuleName, string> = {
   markets: "Markets",
   news: "Headlines",
   quote: "Quote",
+  commute: "Commute",
   onThisDay: "On this day",
   network: "Internet speed",
 };
