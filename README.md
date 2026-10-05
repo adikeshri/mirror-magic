@@ -14,26 +14,34 @@ and a quote, as thin white text on pure black, so the mirror still reflects.
 
 ## Quick start
 
-Requires Node.js 22.18 or newer.
+Requires Node.js 22.18 or newer, and [Mira](https://github.com/adikeshri/mira)
+(.NET 9), the backend that supplies all the data. Start Mira first:
+
+```bash
+cd ../mira
+cp config.example.json config.json   # then edit it
+dotnet run --project src/Mira.Api    # http://127.0.0.1:5080
+```
+
+Then the mirror:
 
 ```bash
 git clone https://github.com/adikeshri/mirror-magic.git
 cd mirror-magic
 npm ci
-cp config.example.json config.json   # then edit it
 npm run build
 npm start                            # http://127.0.0.1:8080
 ```
 
-For development with hot reload, run `npm run dev`. It serves the same API.
+For development with hot reload, run `npm run dev`. Like `npm start`, it forwards `/api` to Mira.
 
 ## Configuration
 
 Settings are layered, each overriding the one before:
 
 1. Built-in defaults ([`src/mirror/config.ts`](src/mirror/config.ts))
-2. `config.json`, for this mirror's setup. It is git-ignored, so start from
-   [`config.example.json`](config.example.json).
+2. `config.json` in Mira, for this mirror's setup (see Mira's
+   `config.example.json`). The mirror reads it through `/api/config`.
 3. The settings panel (**Shift + S**, or the faint gear in the bottom-right
    corner). Changes are saved in the browser on that device, and
    "Reset to config.json" clears them.
@@ -68,29 +76,31 @@ Set these in the shell, or copy [`.env.example`](.env.example) to `.env`.
 | --- | --- | --- |
 | `PORT` | `8080` | |
 | `HOST` | `127.0.0.1` | Set `0.0.0.0` to reach the mirror from other devices on your network. |
-| `MIRROR_CONFIG` | `config.json` | |
-| `MIRROR_CACHE_DIR` | `.cache` | Market quotes are cached here across restarts. |
+| `MIRA_URL` | `http://127.0.0.1:5080` | Where Mira runs. The server forwards `/api/*` there. |
 
 ## Data sources
 
+The browser talks only to this server, which forwards `/api/*` to Mira. Mira
+fetches everything else.
+
 | Module | Source | Fetched by |
 | --- | --- | --- |
-| Weather, forecast, AQI | [Open-Meteo](https://open-meteo.com) | browser |
-| Place name | [Nominatim / OpenStreetMap](https://nominatim.org), once per location | browser |
-| Location, when not set | [ipwho.is](https://ipwho.is), falling back to [GeoJS](https://www.geojs.io), looked up from the server's IP | server |
-| Crypto | [CoinGecko](https://www.coingecko.com) | browser |
-| Currency rates | [Frankfurter](https://frankfurter.dev) (ECB) | browser |
-| Stock indices | Yahoo Finance chart endpoint (unofficial) | server |
-| Headlines | the RSS/Atom feeds in `config.json` | server |
-| On this day | [Wikipedia](https://www.mediawiki.org/wiki/REST_API) | browser |
-| Internet speed | Cloudflare speed test (off by default, ~2.5 MB every 30 min) | browser |
+| Weather, forecast, AQI | [Open-Meteo](https://open-meteo.com) | Mira |
+| Place name | [Nominatim / OpenStreetMap](https://nominatim.org), once per location | Mira |
+| Location, when not set | [ipwho.is](https://ipwho.is), falling back to [GeoJS](https://www.geojs.io), looked up from Mira's IP | Mira |
+| Crypto | [CoinGecko](https://www.coingecko.com) | Mira |
+| Currency rates | [Frankfurter](https://frankfurter.dev) (ECB) | Mira |
+| Stock indices | Yahoo Finance chart endpoint (unofficial) | Mira |
+| Headlines | the RSS/Atom feeds in Mira's `config.json` | Mira |
+| On this day | [Wikipedia](https://www.mediawiki.org/wiki/REST_API) | Mira |
+| Internet speed | Cloudflare speed test, relayed by Mira (off by default, ~2.5 MB every 30 min) | Mira |
 | Quotes | bundled list | — |
 
-**Privacy.** Your coordinates are sent to Open-Meteo and Nominatim. If you don't set a `location` and the browser can't provide one, the server's IP address is also sent to ipwho.is (or GeoJS) to find it; set `"autoLocation": false` to prevent that. Every
-service above sees the mirror's IP address. Nothing is sent anywhere else: no
+**Privacy.** Your coordinates are sent to Open-Meteo and Nominatim. If you don't set a `location` and the browser can't provide one, Mira's IP address is also sent to ipwho.is (or GeoJS) to find it; set `"autoLocation": false` to prevent that. Every
+service above sees Mira's IP address, not the browser's. Nothing is sent anywhere else: no
 analytics, no telemetry, and fonts are self-hosted.
 
-**Stock indices.** Yahoo rate-limits hard. The server spaces its requests out
+**Stock indices.** Yahoo rate-limits hard. Mira spaces its requests out
 and caches each index by its exchange's trading hours. During the session it
 refreshes every 5 minutes. Before the open it holds the last close until the
 bell. If Yahoo refuses, the last known value is shown.
@@ -104,17 +114,15 @@ matches the CPU.
 ```bash
 git clone https://github.com/adikeshri/mirror-magic.git
 cd mirror-magic
-cp config.example.json config.json   # then edit it
-docker compose up -d --build
+docker compose up -d --build        # expects Mira on the host at :5080 (override with MIRA_URL)
 ```
 
 Open `http://127.0.0.1:8080`. Docker restarts the mirror after a reboot or a
 crash (`restart: unless-stopped`), and the container reports its health to
 `docker ps`.
 
-- `config.json` is mounted read-only, so edit it on the host and reload the
-  page. No rebuild is needed.
-- Market quotes are cached in the `mirror-data` volume and survive restarts.
+- The container reaches Mira at `MIRA_URL` (default: Mira running on the Docker
+  host, port 5080). Mira holds `config.json` and the data caches.
 - The port is published on `127.0.0.1` only. To reach the mirror from other
   devices, change the port mapping in `docker-compose.yml` to `"8080:8080"`.
 - The container runs as an unprivileged user with a read-only filesystem and
@@ -170,17 +178,17 @@ npm run typecheck
 ```
 
 ```
-server/            Node server: static files, /api routes, Yahoo cache
+server/            Node server: static files, and /api forwarded to Mira
 src/App.tsx        layout: which module goes in which screen region
 src/mirror/        config schema, data hooks, and components/ for each module
 ```
 
 ### Security notes
 
-- The server only fetches URLs listed in `config.json`. It never proxies a URL
-  sent by a client.
+- The server forwards only GET requests under `/api/` to `MIRA_URL`; it never
+  proxies a URL sent by a client.
 - It binds to `127.0.0.1` by default and sends a strict Content Security
-  Policy, so the page can only talk to the hosts listed in `server/index.ts`.
+  Policy (`connect-src 'self'`), so the page can only talk to this server.
 - Feed content is rendered as text, never as HTML.
 - `/api/config` returns your settings, including your location. Only use
   `HOST=0.0.0.0` on a network you trust.

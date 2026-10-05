@@ -66,9 +66,8 @@ function Mirror() {
   const { coords, error: locationError } = useGeolocation(settings.location, settings.autoLocation);
   const weather = useWeather(on.weather || on.forecast ? coords : null, units);
   const place = usePlaceName(on.weather ? coords : null);
-  const markets = useMarkets(settings.markets, on.markets);
-  const news = useNews(settings.news.feeds, on.news);
-  const localNews = useNews(settings.news.local, on.news, settings.news.feeds.length);
+  const markets = useMarkets(on.markets);
+  const { world: news, local: localNews } = useNews(on.news);
   const history = useOnThisDay(now, on.onThisDay);
 
   useEffect(() => {

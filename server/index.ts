@@ -1,28 +1,16 @@
-// Production server: serves the built mirror (dist/) plus the /api routes.
+// Production server: serves the built mirror (dist/) and forwards /api to Mira.
 //   npm run build && npm start
-// Env: PORT (8080), HOST (127.0.0.1), MIRROR_CONFIG (./config.json)
+// Env: PORT (8080), HOST (127.0.0.1), MIRA_URL (http://127.0.0.1:5080)
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createServer, type ServerResponse } from "node:http";
 import { extname, join, resolve, sep } from "node:path";
-import { createApi } from "./api.ts";
+import { createMiraProxy, MIRA_URL } from "./proxy.ts";
 
 const PORT = Number(process.env.PORT ?? 8080);
 // Loopback by default: the mirror's own browser is the only client it needs.
 const HOST = process.env.HOST ?? "127.0.0.1";
-const CONFIG = resolve(process.env.MIRROR_CONFIG ?? "config.json");
 const DIST = resolve(import.meta.dirname, "../dist");
-
-// Hosts the browser talks to directly. Keep in sync with src/mirror/use*.ts.
-const CONNECT = [
-  "https://api.open-meteo.com",
-  "https://air-quality-api.open-meteo.com",
-  "https://nominatim.openstreetmap.org",
-  "https://api.coingecko.com",
-  "https://api.frankfurter.dev",
-  "https://en.wikipedia.org",
-  "https://speed.cloudflare.com",
-];
 
 const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": [
@@ -31,7 +19,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "style-src 'self'",
     "font-src 'self' data:",
     "img-src 'self' data:",
-    `connect-src 'self' ${CONNECT.join(" ")}`,
+    "connect-src 'self'", // the browser only talks to this server, which forwards /api to Mira
     "object-src 'none'",
     "base-uri 'none'",
     "form-action 'none'",
@@ -75,7 +63,7 @@ async function serveStatic(pathname: string, res: ServerResponse) {
     .pipe(res);
 }
 
-const api = createApi(CONFIG);
+const api = createMiraProxy();
 
 const server = createServer((req, res) => {
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
@@ -99,7 +87,7 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`[mirror] http://${HOST.includes(":") ? `[${HOST}]` : HOST}:${PORT}  (config: ${CONFIG})`);
+  console.log(`[mirror] http://${HOST.includes(":") ? `[${HOST}]` : HOST}:${PORT}  (mira: ${MIRA_URL})`);
 });
 
 for (const sig of ["SIGINT", "SIGTERM"] as const) process.on(sig, () => server.close(() => process.exit(0)));

@@ -1,15 +1,15 @@
 import { Wifi, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
-// Downloads a few MB from Cloudflare to time it, so it runs rarely and the
+// Downloads a few MB (relayed by Mira) to time it, so it runs rarely and the
 // module is off by default.
-const TEST_URL = "https://speed.cloudflare.com/__down?bytes=2500000";
+const TEST_URL = "/api/network/speed-test";
 const TIMEOUT_MS = 15_000;
 const INTERVAL_MS = 30 * 60 * 1000;
 
 async function measureMbps(): Promise<number | null> {
   const start = performance.now();
-  const r = await fetch(`${TEST_URL}&_=${Date.now()}`, { cache: "no-store", signal: AbortSignal.timeout(TIMEOUT_MS) });
+  const r = await fetch(`${TEST_URL}?_=${Date.now()}`, { cache: "no-store", signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!r.ok) return null;
   const bytes = (await r.arrayBuffer()).byteLength;
   const seconds = (performance.now() - start) / 1000;

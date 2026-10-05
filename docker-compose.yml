@@ -7,12 +7,11 @@ services:
       # Loopback only: the mirror's own browser is the only client it needs.
       # Use "8080:8080" to reach it from other devices on your network.
       - "127.0.0.1:8080:8080"
-    volumes:
-      - ./config.json:/config/config.json:ro
-      - mirror-data:/data
+    environment:
+      # Where Mira (the backend) runs; the default is Mira on the Docker host.
+      MIRA_URL: ${MIRA_URL:-http://host.docker.internal:5080}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-
-volumes:
-  mirror-data:
