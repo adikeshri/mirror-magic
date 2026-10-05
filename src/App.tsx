@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useIsFetching } from "@tanstack/react-query";
 import { useSettings } from "@/mirror/useSettings";
 import { useGeolocation } from "@/mirror/useGeolocation";
 import { usePlaceName, useWeather } from "@/mirror/useWeather";
@@ -20,6 +20,7 @@ import { Quote } from "@/mirror/components/Quote";
 import { OnThisDay } from "@/mirror/components/OnThisDay";
 import { InternetSpeed } from "@/mirror/components/InternetSpeed";
 import { SettingsPanel } from "@/mirror/components/SettingsPanel";
+import { Welcome } from "@/mirror/components/Welcome";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,83 +71,93 @@ function Mirror() {
   const { world: news, local: localNews } = useNews(on.news);
   const history = useOnThisDay(now, on.onThisDay);
 
+  // The welcome plays until nothing is in flight and weather (the slowest
+  // first paint, since it waits on a location) has an answer either way.
+  const fetching = useIsFetching();
+  const loaded = ready && fetching === 0 && (!(on.weather || on.forecast) || !!weather || !!locationError);
+  const [revealed, setRevealed] = useState(false);
+  const [intro, setIntro] = useState(true);
+
   useEffect(() => {
     document.title = settings.name ? `Mirror · ${settings.name}` : "Mirror";
   }, [settings.name]);
 
-  // Black until config.json has loaded, so nothing flashes with defaults.
-  if (!ready) return null;
-
   return (
-    <main data-idle={idle} className="mirror drift">
-      <h1 className="sr-only">Magic mirror</h1>
+    <>
+      {/* Mounted only once the welcome starts to dissolve, so every module materializes in turn. */}
+      {revealed && (
+        <main data-idle={idle} className="mirror drift">
+          <h1 className="sr-only">Magic mirror</h1>
 
-      <div className="flex flex-col gap-[3.5rem]" style={{ gridArea: "tl" }}>
-        {on.clock && (
-          <Section>
-            <Clock hour24={hour24} locale={locale} />
-          </Section>
-        )}
-        <Calendar events={NO_EVENTS} locale={locale} />
-        {on.markets && markets.length > 0 && (
-          <Section title="Markets">
-            <Markets rows={markets} locale={locale} />
-          </Section>
-        )}
-      </div>
+          <div className="flex flex-col gap-[3.5rem]" style={{ gridArea: "tl" }}>
+            {on.clock && (
+              <Section>
+                <Clock hour24={hour24} locale={locale} />
+              </Section>
+            )}
+            <Calendar events={NO_EVENTS} locale={locale} />
+            {on.markets && markets.length > 0 && (
+              <Section title="Markets">
+                <Markets rows={markets} locale={locale} />
+              </Section>
+            )}
+          </div>
 
-      <div className="flex flex-col items-end gap-[2.5rem]" style={{ gridArea: "tr" }}>
-        {on.weather && (
-          <Section>
-            <Weather data={weather} place={place} locationError={locationError} units={units} hour24={hour24} locale={locale} />
-          </Section>
-        )}
-        {on.forecast && weather && (
-          <Section title="Forecast" className="text-right">
-            <Forecast daily={weather.daily} locale={locale} />
-          </Section>
-        )}
-        {on.network && (
-          <Section>
-            <InternetSpeed />
-          </Section>
-        )}
-      </div>
+          <div className="flex flex-col items-end gap-[2.5rem]" style={{ gridArea: "tr" }}>
+            {on.weather && (
+              <Section>
+                <Weather data={weather} place={place} locationError={locationError} units={units} hour24={hour24} locale={locale} />
+              </Section>
+            )}
+            {on.forecast && weather && (
+              <Section title="Forecast" className="text-right">
+                <Forecast daily={weather.daily} locale={locale} />
+              </Section>
+            )}
+            {on.network && (
+              <Section>
+                <InternetSpeed />
+              </Section>
+            )}
+          </div>
 
-      <div className="max-w-[30rem] self-end" style={{ gridArea: "bl" }}>
-        {on.onThisDay && history.length > 0 && (
-          <Section title="On this day">
-            <OnThisDay events={history} />
-          </Section>
-        )}
-      </div>
+          <div className="max-w-[30rem] self-end" style={{ gridArea: "bl" }}>
+            {on.onThisDay && history.length > 0 && (
+              <Section title="On this day">
+                <OnThisDay events={history} />
+              </Section>
+            )}
+          </div>
 
-      <div className="mx-auto flex max-w-[44rem] flex-col items-center gap-[1.6rem] self-end text-center" style={{ gridArea: "bc" }}>
-        {on.greeting && (
-          <Section>
-            <Greeting now={now} name={settings.name} nudge={weather ? nudgeFor(weather, units) : null} />
-          </Section>
-        )}
-        {on.quote && (
-          <Section>
-            <Quote />
-          </Section>
-        )}
-      </div>
+          <div className="mx-auto flex max-w-[44rem] flex-col items-center gap-[1.6rem] self-end text-center" style={{ gridArea: "bc" }}>
+            {on.greeting && (
+              <Section>
+                <Greeting now={now} name={settings.name} nudge={weather ? nudgeFor(weather, units) : null} />
+              </Section>
+            )}
+            {on.quote && (
+              <Section>
+                <Quote />
+              </Section>
+            )}
+          </div>
 
-      <div className="ml-auto max-w-[30rem] self-end text-right" style={{ gridArea: "br" }}>
-        {on.news && settings.news.feeds.length + settings.news.local.length > 0 && (
-          <Section title="Headlines">
-            <div className="flex flex-col gap-[1.4rem]">
-              {settings.news.feeds.length > 0 && <Headlines items={news} scope="World" locale={locale} />}
-              {settings.news.local.length > 0 && <Headlines items={localNews} scope="Local" locale={locale} />}
-            </div>
-          </Section>
-        )}
-      </div>
+          <div className="ml-auto max-w-[30rem] self-end text-right" style={{ gridArea: "br" }}>
+            {on.news && settings.news.feeds.length + settings.news.local.length > 0 && (
+              <Section title="Headlines">
+                <div className="flex flex-col gap-[1.4rem]">
+                  {settings.news.feeds.length > 0 && <Headlines items={news} scope="World" locale={locale} />}
+                  {settings.news.local.length > 0 && <Headlines items={localNews} scope="Local" locale={locale} />}
+                </div>
+              </Section>
+            )}
+          </div>
 
-      <SettingsPanel settings={settings} onChange={update} onReset={reset} />
-    </main>
+          <SettingsPanel settings={settings} onChange={update} onReset={reset} />
+        </main>
+      )}
+      {intro && <Welcome name={settings.name} ready={ready} loaded={loaded} onReveal={setRevealed} onGone={() => setIntro(false)} />}
+    </>
   );
 }
 

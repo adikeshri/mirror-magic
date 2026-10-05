@@ -9,7 +9,7 @@ export function Forecast({ daily, locale }: { daily: WeatherData["daily"]; local
           const { Icon, label } = weatherInfo(d.code);
           return (
             // Later days fade out, the classic MagicMirror cue for "less certain".
-            <tr key={d.date} style={{ opacity: 1 - i * 0.14 }}>
+            <tr key={d.date} className="rise" style={{ opacity: 1 - i * 0.14, animationDelay: `${700 + i * 90}ms` }}>
               <td className="text-dim">{parseLocalDate(d.date).toLocaleDateString(locale, { weekday: "short" })}</td>
               <td>
                 <Icon size="1.3em" strokeWidth={1.1} className="inline text-normal" aria-label={label} />
