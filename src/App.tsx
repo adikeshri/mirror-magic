@@ -4,6 +4,7 @@ import { useSettings } from "@/mirror/useSettings";
 import { useGeolocation } from "@/mirror/useGeolocation";
 import { usePlaceName, useWeather } from "@/mirror/useWeather";
 import { useMarkets } from "@/mirror/useMarkets";
+import { useCommute } from "@/mirror/useCommute";
 import { useNews } from "@/mirror/useNews";
 import { useOnThisDay } from "@/mirror/useOnThisDay";
 import { useNow } from "@/mirror/useClock";
@@ -14,6 +15,7 @@ import { Greeting } from "@/mirror/components/Greeting";
 import { Weather } from "@/mirror/components/Weather";
 import { Forecast } from "@/mirror/components/Forecast";
 import { Calendar, type CalendarEvent } from "@/mirror/components/Calendar";
+import { Commute } from "@/mirror/components/Commute";
 import { Markets } from "@/mirror/components/Markets";
 import { Headlines } from "@/mirror/components/Headlines";
 import { Quote } from "@/mirror/components/Quote";
@@ -68,6 +70,7 @@ function Mirror() {
   const weather = useWeather(on.weather || on.forecast ? coords : null, units);
   const place = usePlaceName(on.weather ? coords : null);
   const markets = useMarkets(on.markets);
+  const commute = useCommute(on.commute ? coords : null);
   const { world: news, local: localNews } = useNews(on.news);
   const history = useOnThisDay(now, on.onThisDay);
 
@@ -96,6 +99,11 @@ function Mirror() {
               </Section>
             )}
             <Calendar events={NO_EVENTS} locale={locale} />
+            {on.commute && commute.length > 0 && (
+              <Section title="Commute">
+                <Commute routes={commute} units={units} />
+              </Section>
+            )}
             {on.markets && markets.length > 0 && (
               <Section title="Markets">
                 <Markets rows={markets} locale={locale} />
