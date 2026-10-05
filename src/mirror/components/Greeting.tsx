@@ -19,14 +19,21 @@ function greetingFor(now: Date) {
   return phrases[(slot + offset) % phrases.length];
 }
 
-export function Greeting({ now, name }: { now: Date; name: string }) {
+export function Greeting({ now, name, nudge }: { now: Date; name: string; nudge?: string | null }) {
   const phrase = greetingFor(now);
   const [before, after] = (name ? phrase : phrase.replace(/,? ?\{name\}/, "")).split("{name}");
   return (
-    <p className="text-normal" style={{ fontSize: "2.4rem", fontWeight: 100 }}>
-      {before}
-      {after !== undefined && <span className="text-bright" style={{ fontWeight: 300 }}>{name}</span>}
-      {after}
-    </p>
+    <div>
+      <p className="text-normal" style={{ fontSize: "2.4rem", fontWeight: 100 }}>
+        {before}
+        {after !== undefined && <span className="text-bright" style={{ fontWeight: 300 }}>{name}</span>}
+        {after}
+      </p>
+      {nudge && (
+        <p key={nudge} className="fade-in mt-[0.5rem] text-dim" style={{ fontSize: "1.15rem", fontWeight: 300 }}>
+          {nudge}
+        </p>
+      )}
+    </div>
   );
 }

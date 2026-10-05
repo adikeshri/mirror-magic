@@ -20,6 +20,14 @@ describe("parseFeed", () => {
     expect(parseFeed(xml, "X").map((i) => i.title)).toEqual(["Atom one"]);
   });
 
+  it("keeps http(s) links from RSS and Atom, drops others", () => {
+    const rss = `<rss><channel><item><title>A</title><link>https://x.test/a</link></item>
+      <item><title>B</title><link>javascript:alert(1)</link></item></channel></rss>`;
+    expect(parseFeed(rss, "X").map((i) => i.url)).toEqual(["https://x.test/a", null]);
+    const atom = `<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>C</title><link href="https://x.test/c"/></entry></feed>`;
+    expect(parseFeed(atom, "X")[0].url).toBe("https://x.test/c");
+  });
+
   it("returns nothing for malformed XML", () => {
     expect(parseFeed("<rss><item><title>oops", "X")).toEqual([]);
   });
