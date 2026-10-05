@@ -24,9 +24,9 @@ export function Greeting({ now, name, nudge }: { now: Date; name: string; nudge?
   const [before, after] = (name ? phrase : phrase.replace(/,? ?\{name\}/, "")).split("{name}");
   return (
     <div>
-      <p className="text-normal" style={{ fontSize: "2.4rem", fontWeight: 100 }}>
+      <p key={phrase} className="fade-in text-normal" style={{ fontSize: "2.4rem", fontWeight: 100 }}>
         {before}
-        {after !== undefined && <span className="text-bright" style={{ fontWeight: 300 }}>{name}</span>}
+        {after !== undefined && <span className="glow text-bright" style={{ fontWeight: 300 }}>{name}</span>}
         {after}
       </p>
       {nudge && (

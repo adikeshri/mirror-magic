@@ -36,8 +36,8 @@ export function Weather({ data, place, locationError, units, hour24, locale }: P
         </div>
       )}
       <div className="flex items-center gap-[1.2rem] leading-none">
-        <Icon size="4.6rem" strokeWidth={0.9} className="text-bright" aria-hidden />
-        <span className="text-bright tabular-nums" style={{ fontSize: "6.5rem", fontWeight: 100 }}>
+        <Icon size="4.6rem" strokeWidth={0.9} className="float text-bright" aria-hidden />
+        <span className="glow text-bright tabular-nums" style={{ fontSize: "6.5rem", fontWeight: 100 }}>
           {current.temp}
           <span className="text-dim" style={{ fontSize: "0.45em", fontWeight: 300, verticalAlign: "0.9em" }}>
             {unit}

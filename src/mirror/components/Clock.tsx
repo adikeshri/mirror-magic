@@ -24,12 +24,18 @@ export function Clock({ hour24, locale }: { hour24: boolean; locale?: string }) 
     <div>
       <time
         dateTime={now.toISOString()}
-        className="flex items-start leading-none text-bright tabular-nums"
+        className="glow flex items-start leading-none text-bright tabular-nums"
         style={{ fontWeight: 100, fontSize: "7.5rem", letterSpacing: "-0.02em" }}
       >
-        {part("hour")}:{part("minute")}
+        {part("hour")}
+        <span className="colon">:</span>
+        <span key={part("minute")} className="tick-slow">
+          {part("minute")}
+        </span>
         <span className="ml-[0.15em] mt-[0.12em] flex flex-col text-dim" style={{ fontSize: "0.28em", fontWeight: 300 }}>
-          <span>{part("second")}</span>
+          <span key={part("second")} className="tick">
+            {part("second")}
+          </span>
           {!hour24 && <span className="mt-[0.2em] text-faint">{part("dayPeriod")}</span>}
         </span>
       </time>
