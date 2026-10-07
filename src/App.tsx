@@ -94,7 +94,7 @@ function Mirror() {
         <main ref={mainRef} data-idle={idle} className="mirror drift">
           <h1 className="sr-only">Magic mirror</h1>
 
-          <div className="flex flex-col gap-[3.5rem]" style={{ gridArea: "tl" }}>
+          <div className="flex flex-col gap-[2.5rem]" style={{ gridArea: "tl" }}>
             {on.clock && (
               <Section>
                 <Clock hour24={hour24} locale={locale} />
@@ -103,11 +103,6 @@ function Mirror() {
             {on.calendar && events.length > 0 && (
               <Section title="Today">
                 <Calendar events={events} now={now} hour24={hour24} locale={locale} />
-              </Section>
-            )}
-            {on.commute && commute.length > 0 && (
-              <Section title="Commute">
-                <Commute routes={commute} units={units} />
               </Section>
             )}
             {on.markets && markets.length > 0 && (
@@ -126,6 +121,11 @@ function Mirror() {
             {on.forecast && weather && (
               <Section title="Forecast" className="text-right">
                 <Forecast daily={weather.daily} locale={locale} />
+              </Section>
+            )}
+            {on.commute && commute.length > 0 && (
+              <Section title="Commute" className="text-right">
+                <Commute routes={commute} units={units} />
               </Section>
             )}
             {on.network && (
