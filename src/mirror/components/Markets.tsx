@@ -15,7 +15,7 @@ function Change({ pct, invert }: { pct: number | null; invert?: boolean }) {
   const tone = signed > 0.05 ? "text-up" : signed < -0.05 ? "text-down" : "text-dim";
   const arrow = pct > 0 ? "▲" : pct < 0 ? "▼" : "";
   return (
-    <span className={tone} style={{ fontSize: "0.8em" }}>
+    <span className={`t-meta ${tone}`}>
       {arrow} {Math.abs(pct).toFixed(2)}%
     </span>
   );
@@ -36,7 +36,7 @@ function Sparkline({ values, invert }: { values?: number[]; invert?: boolean }) 
 
 export function Markets({ rows, locale }: { rows: MarketRow[]; locale?: string }) {
   return (
-    <table className="border-separate border-spacing-y-[0.3rem] tabular-nums" style={{ fontSize: "1.2rem" }}>
+    <table className="t-body border-separate border-spacing-y-[0.35rem] tabular-nums">
       <tbody>
         {rows.map((r, i) => (
           <tr key={r.key} className="rise" style={{ animationDelay: `${600 + i * 90}ms` }}>

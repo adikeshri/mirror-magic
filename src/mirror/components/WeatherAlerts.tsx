@@ -28,7 +28,6 @@ export function WeatherAlerts({ current, units }: { current: WeatherData["curren
         <li
           key={id}
           className="inline-flex items-center gap-[0.4em] rounded-full border border-white/20 px-[0.7em] py-[0.25em] text-bright"
-          style={{ fontSize: "0.95rem" }}
         >
           <Icon size="1em" strokeWidth={1.5} aria-hidden />
           {label}

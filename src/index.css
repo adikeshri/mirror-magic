@@ -8,7 +8,7 @@
   --bright: 0 0% 100%;
   --normal: 0 0% 84%;
   --dim: 0 0% 60%;
-  --faint: 0 0% 40%;
+  --faint: 0 0% 46%;
   --up: 145 45% 62%;
   --down: 6 75% 68%;
 
@@ -89,6 +89,12 @@
 }
 
 @layer utilities {
+  /* The whole mirror reads in three text sizes (plus .label for section headings): body for rows,
+     text for sentences, meta for secondary detail. Display sizes (clock, temperature) are set in their components. */
+  .t-body { font-size: 1.2rem; }
+  .t-text { font-size: min(1.2rem, 21px); line-height: 1.45; }
+  .t-meta { font-size: min(1rem, 17px); }
+
   .text-bright { color: hsl(var(--bright)); }
   .text-normal { color: hsl(var(--normal)); }
   .text-dim { color: hsl(var(--dim)); }

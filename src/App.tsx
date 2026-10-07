@@ -16,7 +16,7 @@ import { nudgeFor } from "@/mirror/nudge";
 import { Greeting } from "@/mirror/components/Greeting";
 import { Weather } from "@/mirror/components/Weather";
 import { Forecast } from "@/mirror/components/Forecast";
-import { Calendar } from "@/mirror/components/Calendar";
+import { Calendar, CalendarLegend } from "@/mirror/components/Calendar";
 import { Commute } from "@/mirror/components/Commute";
 import { Markets } from "@/mirror/components/Markets";
 import { Headlines } from "@/mirror/components/Headlines";
@@ -101,7 +101,7 @@ function Mirror() {
               </Section>
             )}
             {on.calendar && events.length > 0 && (
-              <Section title="Today">
+              <Section title="Today" aside={<CalendarLegend events={events} />}>
                 <Calendar events={events} now={now} hour24={hour24} locale={locale} />
               </Section>
             )}

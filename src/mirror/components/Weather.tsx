@@ -18,7 +18,7 @@ type Props = {
 export function Weather({ data, place, locationError, units, hour24, locale }: Props) {
   if (!data) {
     return (
-      <p className="max-w-[18rem] text-right text-faint" style={{ fontSize: "1.1rem" }}>
+      <p className="t-body max-w-[18rem] text-right text-faint">
         {locationError ? "No location yet. Set one in settings (Shift + S) or config.json." : "Loading weather…"}
       </p>
     );
@@ -47,11 +47,11 @@ export function Weather({ data, place, locationError, units, hour24, locale }: P
       <div className="mt-[0.4rem] text-normal" style={{ fontSize: "1.7rem", fontWeight: 300 }}>
         {label}
       </div>
-      <div className="mt-[0.3rem] text-dim tabular-nums" style={{ fontSize: "1.15rem" }}>
+      <div className="t-body mt-[0.3rem] text-dim tabular-nums">
         {current.apparent != null && <>Feels {current.apparent}° · </>}
         <span className="text-normal">↑ {today.high}°</span> <span>↓ {today.low}°</span>
       </div>
-      <div className="mt-[0.6rem] flex flex-col items-end gap-y-[0.3rem]" style={{ fontSize: "1.05rem" }}>
+      <div className="t-meta mt-[0.5rem] flex flex-col items-end gap-y-[0.3rem]">
         <SunTimes sunrise={today.sunrise} sunset={today.sunset} hour24={hour24} locale={locale} />
         {data.aqi != null && <AQI aqi={data.aqi} />}
       </div>

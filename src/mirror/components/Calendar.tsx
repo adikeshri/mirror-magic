@@ -47,6 +47,22 @@ function Marker({ status }: { status: EventStatus }) {
   );
 }
 
+// Names of the calendars on screen, in config order. A legend only helps with more than one.
+export function CalendarLegend({ events }: { events: CalendarEvent[] }) {
+  const legend = [...new Map(events.slice(0, MAX_EVENTS).map((e) => [e.source, e.calendar])).entries()].sort((a, b) => a[0] - b[0]);
+  if (legend.length < 2) return null;
+  return (
+    <ul className="flex flex-wrap gap-x-[1.2em] normal-case tracking-normal text-faint">
+      {legend.map(([source, name]) => (
+        <li key={source} className="flex items-center gap-[0.5em]">
+          <span aria-hidden className="inline-block size-[0.7em] rounded-full" style={{ background: colorOf(source) }} />
+          {name}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function Calendar({
   events,
   now,
@@ -60,13 +76,8 @@ export function Calendar({
 }) {
   if (events.length === 0) return null;
   const shown = events.slice(0, MAX_EVENTS);
-  // Names of the calendars on screen, in config order. A legend only helps with more than one.
-  const legend = [
-    ...new Map(shown.map((e) => [e.source, e.calendar])).entries(),
-  ].sort((a, b) => a[0] - b[0]);
-
   return (
-    <div style={{ fontSize: "1.2rem" }}>
+    <div className="t-body">
       <ul className="space-y-[0.3rem]">
         {shown.map((e) => {
           const status = statusOf(e, now);
@@ -97,23 +108,6 @@ export function Calendar({
           );
         })}
       </ul>
-      {legend.length > 1 && (
-        <ul
-          className="mt-[0.8rem] flex flex-wrap gap-x-[1.2em] gap-y-[0.2em] text-faint"
-          style={{ fontSize: "0.7em" }}
-        >
-          {legend.map(([source, name]) => (
-            <li key={source} className="flex items-center gap-[0.5em]">
-              <span
-                aria-hidden
-                className="inline-block size-[0.7em] rounded-full"
-                style={{ background: colorOf(source) }}
-              />
-              {name}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

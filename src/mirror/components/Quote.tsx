@@ -8,10 +8,10 @@ export function Quote() {
   const q = QUOTES[i];
   return (
     <figure key={i} className="fade-in">
-      <blockquote className="text-normal" style={{ fontSize: "min(1.15rem, 20px)", lineHeight: 1.45 }}>
+      <blockquote className="t-text text-normal">
         “{q.text}”
       </blockquote>
-      <figcaption className="mt-[0.4rem] text-faint" style={{ fontSize: "min(0.95rem, 16.5px)" }}>
+      <figcaption className="t-meta mt-[0.4rem] text-faint">
         {q.author}
       </figcaption>
     </figure>
