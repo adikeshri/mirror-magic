@@ -29,6 +29,7 @@ const Modules = z.object({
   weather: z.boolean().catch(true).default(true),
   forecast: z.boolean().catch(true).default(true),
   markets: z.boolean().catch(true).default(true),
+  calendar: z.boolean().catch(true).default(true),
   commute: z.boolean().catch(true).default(true),
   news: z.boolean().catch(true).default(true),
   quote: z.boolean().catch(true).default(true),

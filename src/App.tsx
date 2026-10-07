@@ -4,6 +4,7 @@ import { useSettings } from "@/mirror/useSettings";
 import { useGeolocation } from "@/mirror/useGeolocation";
 import { usePlaceName, useWeather } from "@/mirror/useWeather";
 import { useMarkets } from "@/mirror/useMarkets";
+import { useCalendar } from "@/mirror/useCalendar";
 import { useCommute } from "@/mirror/useCommute";
 import { useNews } from "@/mirror/useNews";
 import { useOnThisDay } from "@/mirror/useOnThisDay";
@@ -14,7 +15,7 @@ import { nudgeFor } from "@/mirror/nudge";
 import { Greeting } from "@/mirror/components/Greeting";
 import { Weather } from "@/mirror/components/Weather";
 import { Forecast } from "@/mirror/components/Forecast";
-import { Calendar, type CalendarEvent } from "@/mirror/components/Calendar";
+import { Calendar } from "@/mirror/components/Calendar";
 import { Commute } from "@/mirror/components/Commute";
 import { Markets } from "@/mirror/components/Markets";
 import { Headlines } from "@/mirror/components/Headlines";
@@ -36,9 +37,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-// No calendar source is wired up yet; the view renders nothing without events.
-const NO_EVENTS: CalendarEvent[] = [];
 
 // Hides the cursor after a few seconds without mouse movement.
 function useIdle(ms = 3000) {
@@ -70,6 +68,7 @@ function Mirror() {
   const weather = useWeather(on.weather || on.forecast ? coords : null, units);
   const place = usePlaceName(on.weather ? coords : null);
   const markets = useMarkets(on.markets);
+  const events = useCalendar(on.calendar);
   const commute = useCommute(on.commute ? coords : null);
   const { world: news, local: localNews } = useNews(on.news);
   const history = useOnThisDay(now, on.onThisDay);
@@ -98,7 +97,11 @@ function Mirror() {
                 <Clock hour24={hour24} locale={locale} />
               </Section>
             )}
-            <Calendar events={NO_EVENTS} locale={locale} />
+            {on.calendar && events.length > 0 && (
+              <Section title="Today">
+                <Calendar events={events} now={now} hour24={hour24} locale={locale} />
+              </Section>
+            )}
             {on.commute && commute.length > 0 && (
               <Section title="Commute">
                 <Commute routes={commute} units={units} />
