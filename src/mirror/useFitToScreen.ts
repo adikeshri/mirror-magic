@@ -1,10 +1,14 @@
 import { useLayoutEffect, type RefObject } from "react";
 
 const MIN_FIT = 0.55;
+// Overall text size, applied after fitting so it shrinks every screen by the same amount (on a crowded
+// landscape screen the fit alone would just scale a smaller base back up). 1 = as large as fits.
+const TEXT_SCALE = 0.92;
 
 // How much to shrink, from the current scale, so content `scrollHeight` tall fits in `clientHeight`.
 export function nextFit(current: number, clientHeight: number, scrollHeight: number, min = MIN_FIT): number {
-  if (scrollHeight <= clientHeight || scrollHeight <= 0) return current;
+  // A layout that exactly fills the screen measures a fraction over it (1920.05 of 1920); that is not overflow.
+  if (scrollHeight <= clientHeight + 1 || scrollHeight <= 0) return current;
   // A hair under the exact ratio, because padding and gaps don't scale with the text.
   return Math.max(min, current * (clientHeight / scrollHeight) * 0.99);
 }
@@ -38,6 +42,7 @@ export function useFitToScreen(ref: RefObject<HTMLElement>, active: boolean) {
         f = next;
         root.style.setProperty("--fit", String(f));
       }
+      root.style.setProperty("--fit", String(f * TEXT_SCALE));
     };
     const schedule = () => {
       cancelAnimationFrame(frame);

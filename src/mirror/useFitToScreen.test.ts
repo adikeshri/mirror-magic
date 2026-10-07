@@ -8,5 +8,6 @@ describe("nextFit", () => {
   });
   it("compounds from the current scale", () => expect(nextFit(0.9, 1000, 1010)).toBeLessThan(0.9));
   it("never goes below the floor", () => expect(nextFit(1, 1000, 5000)).toBe(0.55));
+  it("ignores sub-pixel rounding when the layout exactly fills the screen", () => expect(nextFit(1, 1920, 1920.05)).toBe(1));
   it("ignores an empty measurement", () => expect(nextFit(1, 1000, 0)).toBe(1));
 });

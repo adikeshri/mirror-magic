@@ -30,7 +30,7 @@ export function Greeting({ now, name, nudge }: { now: Date; name: string; nudge?
         {after}
       </p>
       {nudge && (
-        <p key={nudge} className="fade-in mt-[0.5rem] text-dim" style={{ fontSize: "1.15rem", fontWeight: 300 }}>
+        <p key={nudge} className="t-body fade-in mt-[0.5rem] text-dim">
           {nudge}
         </p>
       )}

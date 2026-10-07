@@ -45,7 +45,7 @@ export function InternetSpeed() {
 
   const Icon = online ? Wifi : WifiOff;
   return (
-    <p className="inline-flex items-center gap-[0.4em] text-dim" style={{ fontSize: "1rem" }}>
+    <p className="t-meta inline-flex items-center gap-[0.4em] text-dim">
       <Icon size="1em" strokeWidth={1.5} aria-hidden />
       {!online ? "Offline" : mbps != null ? `${mbps.toFixed(0)} Mbps` : "Measuring…"}
     </p>

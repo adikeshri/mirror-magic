@@ -8,7 +8,7 @@ const ARROW: Record<Traffic, string> = { heavier: "▲ ", normal: "", lighter: "
 
 export function Commute({ routes, units }: { routes: Route[]; units: Settings["units"] }) {
   return (
-    <table className="border-separate border-spacing-y-[0.3rem] tabular-nums" style={{ fontSize: "1.2rem" }}>
+    <table className="t-body border-separate border-spacing-y-[0.35rem] tabular-nums">
       <tbody>
         {routes.map((r, i) => {
           const t = traffic(r) ?? "normal";
@@ -22,7 +22,7 @@ export function Commute({ routes, units }: { routes: Route[]; units: Settings["u
                 {formatDuration(r.minutes)}
                 {t !== "normal" && <span className="sr-only"> ({t} traffic)</span>}
               </td>
-              <td className="text-right text-faint" style={{ fontSize: "0.8em" }}>
+              <td className="t-meta text-right text-faint">
                 {formatDistance(r.km, units)}
               </td>
             </tr>

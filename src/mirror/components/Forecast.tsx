@@ -3,7 +3,7 @@ import { weatherInfo } from "../weatherIcons";
 
 export function Forecast({ daily, locale }: { daily: WeatherData["daily"]; locale?: string }) {
   return (
-    <table className="ml-auto border-separate border-spacing-x-[1.1rem] border-spacing-y-[0.35rem] text-right tabular-nums" style={{ fontSize: "1.25rem" }}>
+    <table className="t-body ml-auto border-separate border-spacing-x-[1.1rem] border-spacing-y-[0.35rem] text-right tabular-nums">
       <tbody>
         {daily.map((d, i) => {
           const { Icon, label } = weatherInfo(d.code);
