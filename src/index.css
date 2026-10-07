@@ -24,7 +24,8 @@
   /* Everything is sized in rem, and rem follows the screen's short side, so
      the layout reads the same on a 1080p panel or a 4K one, either way up. */
   html {
-    font-size: clamp(10px, 1.6vmin, 34px);
+    /* --fit shrinks everything together when a crowded mirror would not fit (see useFitToScreen). */
+    font-size: calc(clamp(10px, 1.6vmin, 34px) * var(--fit, 1));
     background: #000;
     color: hsl(var(--normal));
   }
@@ -60,9 +61,11 @@
     /* Portrait: the usual orientation for a mirror. */
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto 1fr auto auto;
+    /* tl and tr stay out of the 1fr row: a grid item spanning a flexible row never
+       sizes it, so a tall column would spill over what sits below. */
     grid-template-areas:
       "tl tr"
-      "tl tr"
+      ".  . "
       "bc bc"
       "bl br";
   }
@@ -73,7 +76,7 @@
       grid-template-rows: auto 1fr auto;
       grid-template-areas:
         "tl . tr"
-        "tl . tr"
+        ".  . . "
         "bl bc br";
     }
   }
