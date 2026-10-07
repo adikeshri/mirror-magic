@@ -9,6 +9,17 @@ export function nextFit(current: number, clientHeight: number, scrollHeight: num
   return Math.max(min, current * (clientHeight / scrollHeight) * 0.99);
 }
 
+// How tall the layout needs to be: the lowest grid area plus the bottom padding. Measured from the areas
+// themselves (layout sizes, not transformed rects), because scrollHeight stops at the padding box and would let
+// the content eat the bottom margin.
+function requiredHeight(el: HTMLElement): number {
+  let bottom = 0;
+  for (const child of Array.from(el.children) as HTMLElement[]) {
+    if (child.style.gridArea) bottom = Math.max(bottom, child.offsetTop + child.offsetHeight);
+  }
+  return bottom + parseFloat(getComputedStyle(el).paddingBottom);
+}
+
 // A busy mirror (calendar, commute and markets in one column) can be taller than the screen. Rather than
 // overlap or cut off, scale the whole layout down until it fits. Re-measured whenever a column's size changes.
 export function useFitToScreen(ref: RefObject<HTMLElement>, active: boolean) {
@@ -22,7 +33,7 @@ export function useFitToScreen(ref: RefObject<HTMLElement>, active: boolean) {
       let f = 1;
       root.style.setProperty("--fit", "1");
       for (let i = 0; i < 4; i++) {
-        const next = nextFit(f, el.clientHeight, el.scrollHeight);
+        const next = nextFit(f, el.clientHeight, requiredHeight(el));
         if (next === f) break;
         f = next;
         root.style.setProperty("--fit", String(f));
