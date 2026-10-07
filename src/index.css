@@ -70,14 +70,28 @@
       "bl br";
   }
 
-  @media (orientation: landscape) {
-    .mirror {
-      grid-template-columns: 1fr 1.1fr 1fr;
-      grid-template-rows: auto 1fr;
-      grid-template-areas:
-        "tl . tr"
-        "bl bc br";
-    }
+  /* The layout is chosen in JS (display.ts): "auto" follows the screen's shape, or config forces one. */
+  .mirror[data-layout="landscape"] {
+    grid-template-columns: 1fr 1.1fr 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "tl . tr"
+      "bl bc br";
+  }
+
+  /* Sunset to sunrise: dimmer, fading over a minute so it is never a jump. */
+  .mirror {
+    transition: filter 60s linear;
+  }
+  .mirror[data-night="true"] {
+    filter: brightness(var(--night-dim, 0.6));
+  }
+
+  /* Text wider than its row glides back and forth (Marquee.tsx): 15% resting at the start, 35% moving to
+     the end, 15% resting there, 35% moving back. --shift and --dur are set per title. */
+  .marquee-run {
+    animation: marquee var(--dur) ease-in-out infinite;
+    will-change: transform;
   }
 
   .label {
@@ -94,6 +108,8 @@
   .t-body { font-size: 1.2rem; }
   .t-text { font-size: min(1.2rem, 21px); line-height: 1.45; }
   .t-meta { font-size: min(1rem, 17px); }
+  /* Lower-priority tables (markets, forecast, commute) sit a step below body so the time and the next event lead. */
+  .t-quiet { font-size: 1.1rem; }
 
   .text-bright { color: hsl(var(--bright)); }
   .text-normal { color: hsl(var(--normal)); }
@@ -193,6 +209,20 @@
 
 @keyframes draw {
   to { stroke-dashoffset: 0; }
+}
+
+@keyframes marquee {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+  50%,
+  65% {
+    transform: translateX(calc(var(--shift) * -1));
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 @keyframes drift {
@@ -404,5 +434,15 @@
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
+  }
+}
+
+/* No gliding for anyone who asked for less motion: a title that doesn't fit just ends in an ellipsis. */
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    text-overflow: ellipsis;
+  }
+  .marquee-run {
+    animation: none !important;
   }
 }

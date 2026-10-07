@@ -8,7 +8,7 @@ const ARROW: Record<Traffic, string> = { heavier: "▲ ", normal: "", lighter: "
 
 export function Commute({ routes, units }: { routes: Route[]; units: Settings["units"] }) {
   return (
-    <table className="t-body border-separate border-spacing-y-[0.35rem] tabular-nums">
+    <table className="t-quiet border-separate border-spacing-y-[0.35rem] tabular-nums">
       <tbody>
         {routes.map((r, i) => {
           const t = traffic(r) ?? "normal";

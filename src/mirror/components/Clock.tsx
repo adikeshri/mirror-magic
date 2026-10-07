@@ -25,7 +25,7 @@ export function Clock({ hour24, locale }: { hour24: boolean; locale?: string }) 
       <time
         dateTime={now.toISOString()}
         className="glow flex items-start leading-none text-bright tabular-nums"
-        style={{ fontWeight: 100, fontSize: "7.5rem", letterSpacing: "-0.02em" }}
+        style={{ fontWeight: 100, fontSize: "8.5rem", letterSpacing: "-0.02em" }}
       >
         {part("hour")}
         <span className="colon">:</span>

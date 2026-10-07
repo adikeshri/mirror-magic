@@ -54,6 +54,13 @@ const Markets = z.object({
   indices: z.array(Index).max(6).catch([]).default([{ symbol: "^GSPC", label: "S&P 500" }]),
 });
 
+const Display = z.object({
+  // "auto" follows the screen's shape; portrait/landscape force that arrangement.
+  layout: z.enum(["auto", "portrait", "landscape"]).catch("auto").default("auto"),
+  // Brightness from sunset to sunrise (1 = no dimming).
+  nightDim: z.number().min(0.2).max(1).catch(0.6).default(0.6),
+});
+
 const Feed = z.object({ url: z.string().url().regex(/^https?:\/\//), name: z.string().max(40) });
 
 export const SettingsSchema = z.object({
@@ -69,6 +76,7 @@ export const SettingsSchema = z.object({
   autoLocation: z.boolean().catch(true).default(true),
   modules: Modules.catch(Modules.parse({})).default({}),
   markets: Markets.catch(Markets.parse({})).default({}),
+  display: Display.catch(Display.parse({})).default({}),
   news: z
     .object({
       feeds: z.array(Feed).max(5).catch([]).default([
