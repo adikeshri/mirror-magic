@@ -36,7 +36,7 @@ function Sparkline({ values, invert }: { values?: number[]; invert?: boolean }) 
 
 export function Markets({ rows, locale }: { rows: MarketRow[]; locale?: string }) {
   return (
-    <table className="t-body border-separate border-spacing-y-[0.35rem] tabular-nums">
+    <table className="t-quiet border-separate border-spacing-y-[0.35rem] tabular-nums">
       <tbody>
         {rows.map((r, i) => (
           <tr key={r.key} className="rise" style={{ animationDelay: `${600 + i * 90}ms` }}>

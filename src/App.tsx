@@ -10,6 +10,7 @@ import { useNews } from "@/mirror/useNews";
 import { useOnThisDay } from "@/mirror/useOnThisDay";
 import { useNow } from "@/mirror/useClock";
 import { useFitToScreen } from "@/mirror/useFitToScreen";
+import { isNight, resolveLayout, useScreenIsLandscape } from "@/mirror/display";
 import { Section } from "@/mirror/components/Section";
 import { Clock } from "@/mirror/components/Clock";
 import { nudgeFor } from "@/mirror/nudge";
@@ -64,6 +65,7 @@ function Mirror() {
   const locale = settings.locale || undefined;
   const now = useNow(60_000);
   const idle = useIdle();
+  const screenIsLandscape = useScreenIsLandscape();
 
   const { coords, error: locationError } = useGeolocation(settings.location, settings.autoLocation);
   const weather = useWeather(on.weather || on.forecast ? coords : null, units);
@@ -91,7 +93,14 @@ function Mirror() {
     <>
       {/* Mounted only once the welcome starts to dissolve, so every module materializes in turn. */}
       {revealed && (
-        <main ref={mainRef} data-idle={idle} className="mirror drift">
+        <main
+          ref={mainRef}
+          data-idle={idle}
+          data-layout={resolveLayout(settings.display.layout, screenIsLandscape)}
+          data-night={!!weather && isNight(now, weather.today.sunrise, weather.today.sunset)}
+          style={{ "--night-dim": settings.display.nightDim } as React.CSSProperties}
+          className="mirror drift"
+        >
           <h1 className="sr-only">Magic mirror</h1>
 
           <div className="flex flex-col gap-[2.5rem]" style={{ gridArea: "tl" }}>

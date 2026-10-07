@@ -1,5 +1,6 @@
 import { Check, Circle } from "lucide-react";
 import { statusOf, type EventStatus } from "../useCalendar";
+import { Marquee } from "./Marquee";
 
 // Today's events, as returned by Mira: all-day first, then by start time.
 export type CalendarEvent = {
@@ -77,7 +78,7 @@ export function Calendar({
   if (events.length === 0) return null;
   const shown = events.slice(0, MAX_EVENTS);
   return (
-    <div className="t-body">
+    <div className="t-body max-w-[28rem]">
       <ul className="space-y-[0.3rem]">
         {shown.map((e) => {
           const status = statusOf(e, now);
@@ -97,8 +98,8 @@ export function Calendar({
                       hour12: !hour24,
                     })}
               </span>
-              <span className={TEXT[status]}>
-                {e.title}
+              <span className={`min-w-0 ${TEXT[status]}`}>
+                <Marquee>{e.title}</Marquee>
                 <span className="sr-only">
                   {" "}
                   ({status === "now" ? "in progress" : status})
