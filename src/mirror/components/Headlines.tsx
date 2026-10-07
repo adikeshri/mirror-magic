@@ -19,7 +19,7 @@ export function Headlines({ items, scope, locale }: { items: NewsItem[]; scope: 
   return (
     <div key={i} className="fade-in flex items-center justify-end gap-[1rem]" aria-live="off">
       <div>
-        <p className="t-text line-clamp-4 text-normal">
+        <p className="t-text line-clamp-2 text-normal">
           {item.title}
         </p>
         <p className="t-meta mt-[0.4rem] text-faint">
