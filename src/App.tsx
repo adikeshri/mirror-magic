@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QueryClient, QueryClientProvider, useIsFetching } from "@tanstack/react-query";
 import { useSettings } from "@/mirror/useSettings";
 import { useGeolocation } from "@/mirror/useGeolocation";
@@ -9,6 +9,7 @@ import { useCommute } from "@/mirror/useCommute";
 import { useNews } from "@/mirror/useNews";
 import { useOnThisDay } from "@/mirror/useOnThisDay";
 import { useNow } from "@/mirror/useClock";
+import { useFitToScreen } from "@/mirror/useFitToScreen";
 import { Section } from "@/mirror/components/Section";
 import { Clock } from "@/mirror/components/Clock";
 import { nudgeFor } from "@/mirror/nudge";
@@ -79,6 +80,8 @@ function Mirror() {
   const loaded = ready && fetching === 0 && (!(on.weather || on.forecast) || !!weather || !!locationError);
   const [revealed, setRevealed] = useState(false);
   const [intro, setIntro] = useState(true);
+  const mainRef = useRef<HTMLElement>(null);
+  useFitToScreen(mainRef, revealed);
 
   useEffect(() => {
     document.title = settings.name ? `Mirror · ${settings.name}` : "Mirror";
@@ -88,7 +91,7 @@ function Mirror() {
     <>
       {/* Mounted only once the welcome starts to dissolve, so every module materializes in turn. */}
       {revealed && (
-        <main data-idle={idle} className="mirror drift">
+        <main ref={mainRef} data-idle={idle} className="mirror drift">
           <h1 className="sr-only">Magic mirror</h1>
 
           <div className="flex flex-col gap-[3.5rem]" style={{ gridArea: "tl" }}>
