@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchJson } from "./fetchJson";
 
 export type HistoricalEvent = { year: number; text: string };
@@ -15,6 +15,7 @@ export function useOnThisDay(today: Date, enabled: boolean) {
       queryFn: () => load(month, day),
       enabled,
       staleTime: Infinity,
+      placeholderData: keepPreviousData, // midnight: the old day stays until the new one lands, never a blank module
     }).data ?? []
   );
 }

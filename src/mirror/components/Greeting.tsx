@@ -19,21 +19,21 @@ function greetingFor(now: Date) {
   return phrases[(slot + offset) % phrases.length];
 }
 
+import { Swap } from "./Swap";
+
 export function Greeting({ now, name, nudge }: { now: Date; name: string; nudge?: string | null }) {
   const phrase = greetingFor(now);
   const [before, after] = (name ? phrase : phrase.replace(/,? ?\{name\}/, "")).split("{name}");
   return (
     <div>
-      <p key={phrase} className="fade-in text-normal" style={{ fontSize: "2.4rem", fontWeight: 100 }}>
-        {before}
-        {after !== undefined && <span className="glow text-bright" style={{ fontWeight: 300 }}>{name}</span>}
-        {after}
-      </p>
-      {nudge && (
-        <p key={nudge} className="t-body fade-in mt-[0.5rem] text-dim">
-          {nudge}
+      <Swap k={phrase}>
+        <p className="text-normal" style={{ fontSize: "2.4rem", fontWeight: 100 }}>
+          {before}
+          {after !== undefined && <span className="glow text-bright" style={{ fontWeight: 300 }}>{name}</span>}
+          {after}
         </p>
-      )}
+      </Swap>
+      <Swap k={nudge ?? ""}>{nudge && <p className="t-body mt-[0.5rem] text-dim">{nudge}</p>}</Swap>
     </div>
   );
 }

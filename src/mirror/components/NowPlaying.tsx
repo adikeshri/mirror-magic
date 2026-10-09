@@ -16,7 +16,7 @@ export function NowPlaying({ track, fetchedAt }: { track: Track; fetchedAt: numb
   const base = track.positionMs ?? 0;
   const pos = Math.max(0, Math.min(dur ?? Infinity, track.state === "playing" ? base + (now.getTime() - fetchedAt) : base));
   return (
-    <div className="fade-in flex w-[min(28rem,90vw)] items-center gap-[1.6rem] text-left">
+    <div className="flex w-[min(28rem,90vw)] items-center gap-[1.6rem] text-left">
       {track.coverUrl ? (
         <img src={track.coverUrl} alt="" className="size-[7.5rem] shrink-0 rounded-md object-cover shadow-[0_0.5rem_1.5rem_rgba(0,0,0,0.6)]" />
       ) : (
