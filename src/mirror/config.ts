@@ -34,6 +34,8 @@ const Modules = z.object({
   news: z.boolean().catch(true).default(true),
   quote: z.boolean().catch(true).default(true),
   onThisDay: z.boolean().catch(true).default(true),
+  // Shows itself only while the Pi is playing something.
+  music: z.boolean().catch(true).default(true),
   // Off by default: it downloads a few MB on every run.
   network: z.boolean().catch(false).default(false),
 });

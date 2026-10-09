@@ -13,6 +13,7 @@ const MODULE_LABELS: Record<ModuleName, string> = {
   calendar: "Calendar",
   commute: "Commute",
   onThisDay: "On this day",
+  music: "Now playing",
   network: "Internet speed",
 };
 

@@ -8,6 +8,7 @@ import { useCalendar } from "@/mirror/useCalendar";
 import { useCommute } from "@/mirror/useCommute";
 import { useNews } from "@/mirror/useNews";
 import { useOnThisDay } from "@/mirror/useOnThisDay";
+import { useNowPlaying } from "@/mirror/useNowPlaying";
 import { useNow } from "@/mirror/useClock";
 import { useFitToScreen } from "@/mirror/useFitToScreen";
 import { isNight, resolveLayout, useScreenIsLandscape } from "@/mirror/display";
@@ -23,6 +24,7 @@ import { Markets } from "@/mirror/components/Markets";
 import { Headlines } from "@/mirror/components/Headlines";
 import { Quote } from "@/mirror/components/Quote";
 import { OnThisDay } from "@/mirror/components/OnThisDay";
+import { NowPlaying } from "@/mirror/components/NowPlaying";
 import { InternetSpeed } from "@/mirror/components/InternetSpeed";
 import { SettingsPanel } from "@/mirror/components/SettingsPanel";
 import { Welcome } from "@/mirror/components/Welcome";
@@ -75,6 +77,7 @@ function Mirror() {
   const commute = useCommute(on.commute ? coords : null);
   const { world: news, local: localNews } = useNews(on.news);
   const history = useOnThisDay(now, on.onThisDay);
+  const track = useNowPlaying(on.music);
 
   // The welcome plays until nothing is in flight and weather (the slowest
   // first paint, since it waits on a location) has an answer either way.
@@ -153,6 +156,11 @@ function Mirror() {
           </div>
 
           <div className="mx-auto flex max-w-[44rem] flex-col items-center gap-[1.6rem] self-end text-center" style={{ gridArea: "bc" }}>
+            {track && (
+              <Section>
+                <NowPlaying track={track} />
+              </Section>
+            )}
             {on.greeting && (
               <Section>
                 <Greeting now={now} name={settings.name} nudge={weather ? nudgeFor(weather, units) : null} />
