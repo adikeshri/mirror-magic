@@ -12,6 +12,9 @@
   --up: 145 45% 62%;
   --down: 6 75% 68%;
 
+  /* One easing for every transition (Apple's standard spring-like decel) so motion feels of a piece. */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+
   --aqi-good: 130 55% 58%;
   --aqi-moderate: 50 85% 60%;
   --aqi-sensitive: 30 90% 62%;
@@ -124,35 +127,40 @@
 
   /* Content swaps (rotating headlines, quotes) condense out of a soft blur. */
   .fade-in {
-    animation: fade-in 1.4s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+    animation: fade-in 1s var(--ease) 0.2s both;
+  }
+  .fade-out {
+    animation: fade-out 0.7s var(--ease) forwards;
   }
 
   /* Modules surface one after another once the welcome dissolves: columns
      in reading order, then top to bottom within each column. */
   .materialize {
-    animation: materialize 1.7s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+    animation: materialize 1.7s var(--ease) both;
     animation-delay: calc(250ms + var(--area, 0) * 170ms + var(--slot, 0) * 150ms);
   }
   .mirror > div:nth-of-type(2) { --area: 1; }
   .mirror > div:nth-of-type(4) { --area: 2; }
   .mirror > div:nth-of-type(3),
   .mirror > div:nth-of-type(5) { --area: 3; }
-  .mirror > div > .materialize:nth-child(2) { --slot: 1; }
-  .mirror > div > .materialize:nth-child(3) { --slot: 2; }
+  .mirror > div > .materialize:nth-child(2),
+  .mirror > div > :nth-child(2) > .materialize { --slot: 1; }
+  .mirror > div > .materialize:nth-child(3),
+  .mirror > div > :nth-child(3) > .materialize { --slot: 2; }
 
   /* Rows that cascade in after their module. No "to" keyframe, so each row
      settles on its own inline opacity (the forecast fades later days). */
   .rise {
-    animation: rise 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) backwards;
+    animation: rise 0.9s var(--ease) backwards;
   }
 
   .tick {
     display: inline-block;
-    animation: tick 0.6s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+    animation: tick 0.6s var(--ease) both;
   }
   .tick-slow {
     display: inline-block;
-    animation: tick 1.1s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+    animation: tick 1.1s var(--ease) both;
   }
   .colon {
     animation: colon 2s ease-in-out infinite;
@@ -180,8 +188,12 @@
   }
 }
 
+@keyframes fade-out {
+  to { opacity: 0; transform: translateY(-0.3rem); filter: blur(4px); }
+}
+
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(0.4rem); filter: blur(6px); }
+  from { opacity: 0; transform: translateY(0.4rem); filter: blur(4px); }
   to { opacity: 1; transform: none; filter: none; }
 }
 
@@ -280,7 +292,7 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-  animation: halo-in 2s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+  animation: halo-in 2s var(--ease) both;
 }
 .is-leaving .welcome-halo {
   animation: halo-burst 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards;
@@ -327,7 +339,7 @@
 }
 .welcome-letter {
   display: inline-block;
-  animation: letter-in 1.3s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+  animation: letter-in 1.3s var(--ease) both;
 }
 .welcome-shine {
   animation: shine 4.5s ease-in-out 2.5s infinite;

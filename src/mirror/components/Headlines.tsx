@@ -1,5 +1,6 @@
 import type { NewsItem } from "../useNews";
 import { QR } from "./QR";
+import { Swap } from "./Swap";
 import { useRotation } from "../useRotation";
 
 const ROTATE_MS = 15_000;
@@ -14,10 +15,13 @@ function ago(date: Date, locale?: string) {
 
 export function Headlines({ items, scope, locale }: { items: NewsItem[]; scope: string; locale?: string }) {
   const i = useRotation(items.length, ROTATE_MS);
-  if (i < 0) return <p className="text-faint">Loading headlines…</p>;
   const item = items[i];
   return (
-    <div key={i} className="fade-in flex items-center justify-end gap-[1rem]" aria-live="off">
+    <Swap k={i < 0 ? "loading" : i}>
+      {!item ? (
+        <p className="text-faint">Loading headlines…</p>
+      ) : (
+    <div className="flex items-center justify-end gap-[1rem]" aria-live="off">
       <div>
         <p className="t-text line-clamp-2 text-normal">
           {item.title}
@@ -29,5 +33,7 @@ export function Headlines({ items, scope, locale }: { items: NewsItem[]; scope: 
       </div>
       {item.url && <QR url={item.url} />}
     </div>
+      )}
+    </Swap>
   );
 }

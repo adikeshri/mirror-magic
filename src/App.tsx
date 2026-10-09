@@ -12,6 +12,7 @@ import { useNowPlaying } from "@/mirror/useNowPlaying";
 import { useNow } from "@/mirror/useClock";
 import { useFitToScreen } from "@/mirror/useFitToScreen";
 import { isNight, resolveLayout, useScreenIsLandscape } from "@/mirror/display";
+import { Swap } from "@/mirror/components/Swap";
 import { Section } from "@/mirror/components/Section";
 import { Clock } from "@/mirror/components/Clock";
 import { nudgeFor } from "@/mirror/nudge";
@@ -156,11 +157,13 @@ function Mirror() {
           </div>
 
           <div className="mx-auto flex max-w-[44rem] flex-col items-center gap-[1.6rem] self-end text-center" style={{ gridArea: "bc" }}>
-            {track && (
-              <Section>
-                <NowPlaying track={track} fetchedAt={fetchedAt} />
-              </Section>
-            )}
+            <Swap k={track ? "on" : "off"}>
+              {track && (
+                <Section>
+                  <NowPlaying track={track} fetchedAt={fetchedAt} />
+                </Section>
+              )}
+            </Swap>
             {on.greeting && (
               <Section>
                 <Greeting now={now} name={settings.name} nudge={weather ? nudgeFor(weather, units) : null} />
