@@ -77,7 +77,7 @@ function Mirror() {
   const commute = useCommute(on.commute ? coords : null);
   const { world: news, local: localNews } = useNews(on.news);
   const history = useOnThisDay(now, on.onThisDay);
-  const track = useNowPlaying(on.music);
+  const { track, fetchedAt } = useNowPlaying(on.music);
 
   // The welcome plays until nothing is in flight and weather (the slowest
   // first paint, since it waits on a location) has an answer either way.
@@ -158,7 +158,7 @@ function Mirror() {
           <div className="mx-auto flex max-w-[44rem] flex-col items-center gap-[1.6rem] self-end text-center" style={{ gridArea: "bc" }}>
             {track && (
               <Section>
-                <NowPlaying track={track} />
+                <NowPlaying track={track} fetchedAt={fetchedAt} />
               </Section>
             )}
             {on.greeting && (
